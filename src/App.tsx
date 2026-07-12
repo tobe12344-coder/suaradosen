@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Mic, MicOff, Settings, Download, Trash2, GripVertical, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Mic, MicOff, Download, Trash2, GripVertical, CheckCircle2, AlertCircle } from 'lucide-react';
 import jsPDF from 'jspdf';
 
 function App() {

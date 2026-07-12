@@ -43,6 +43,7 @@ function createWindow() {
     height: 300,
     transparent: true,
     frame: false,
+    icon: path.join(__dirname, 'build/icon.png'),
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: true,
