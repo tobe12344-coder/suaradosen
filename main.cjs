@@ -12,6 +12,7 @@ function setupServer() {
   const serverApp = express();
   serverApp.use(cors());
   serverApp.use(express.json());
+  serverApp.use(express.static(path.join(__dirname, 'dist')));
 
   const server = http.createServer(serverApp);
   const wss = new WebSocketServer({ server });
