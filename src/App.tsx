@@ -19,6 +19,7 @@ function App() {
   // New Teaching Features State
   const [keywords, setKeywords] = useState('');
   const [isBgEnabled, setIsBgEnabled] = useState(false);
+  const [bgOpacity, setBgOpacity] = useState(70);
   const [flashMessage, setFlashMessage] = useState<string | null>(null);
   const [timerRemaining, setTimerRemaining] = useState<number | null>(null);
 
@@ -44,7 +45,7 @@ function App() {
         console.log('Connected to local WS server');
         if (!isReceiver) {
           ws.send(JSON.stringify({ type: 'status', isListening }));
-          ws.send(JSON.stringify({ type: 'settings', fontSize, textColor, maxHeight, keywords, isBgEnabled }));
+          ws.send(JSON.stringify({ type: 'settings', fontSize, textColor, maxHeight, keywords, isBgEnabled, bgOpacity }));
         }
       };
 
@@ -61,6 +62,7 @@ function App() {
               if (data.maxHeight !== undefined) setMaxHeight(data.maxHeight);
               if (data.keywords !== undefined) setKeywords(data.keywords);
               if (data.isBgEnabled !== undefined) setIsBgEnabled(data.isBgEnabled);
+              if (data.bgOpacity !== undefined) setBgOpacity(data.bgOpacity);
             } else if (data.type === 'status') {
               setIsListening(data.isListening);
             } else if (data.type === 'flash') {
@@ -227,12 +229,13 @@ function App() {
     showToast("PDF berhasil diunduh!");
   };
 
-  const updateSettings = (size: number, color: string, height: number, kw: string, bg: boolean) => {
+  const updateSettings = (size: number, color: string, height: number, kw: string, bg: boolean, op: number) => {
     setFontSize(size);
     setTextColor(color);
     setMaxHeight(height);
     setKeywords(kw);
     setIsBgEnabled(bg);
+    setBgOpacity(op);
     if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
       wsRef.current.send(JSON.stringify({ 
         type: 'settings', 
@@ -240,7 +243,8 @@ function App() {
         textColor: color, 
         maxHeight: height,
         keywords: kw,
-        isBgEnabled: bg
+        isBgEnabled: bg,
+        bgOpacity: op
       }));
     }
   };
@@ -309,7 +313,7 @@ function App() {
       // SETUP MODE
       return (
         <div 
-          className="w-screen h-screen flex flex-col justify-end p-6 cursor-grab active:cursor-grabbing relative"
+          className="w-screen h-screen flex flex-col justify-end p-6 cursor-grab active:cursor-grabbing relative overflow-hidden"
           style={{ WebkitAppRegion: 'drag' } as any}
         >
           {/* Flash Overlay Preview */}
@@ -332,8 +336,11 @@ function App() {
               <div className="mt-6 pt-6 border-t border-white/20">
                 <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2">Pratinjau Batas Teks:</p>
                 <div 
-                  className={`w-full relative flex flex-col justify-end overflow-hidden transition-all duration-300 ${isBgEnabled ? 'bg-black/60 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl' : 'border-y-2 border-dashed border-blue-400/50'}`}
-                  style={{ height: `${maxHeight}px` }}
+                  className={`w-full relative flex flex-col justify-end overflow-hidden transition-all duration-300 ${isBgEnabled ? 'backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-2xl' : 'border-y-2 border-dashed border-blue-400/50'}`}
+                  style={{ 
+                    height: `${maxHeight}px`,
+                    ...(isBgEnabled ? { backgroundColor: `rgba(0, 0, 0, ${bgOpacity / 100})` } : {})
+                  }}
                 >
                   {!isBgEnabled && <div className="absolute inset-0 bg-blue-400/10 pointer-events-none"></div>}
                   <div className="w-full pb-1">
@@ -377,8 +384,11 @@ function App() {
 
         <div className="w-full flex items-end gap-8">
           <div 
-            className={`flex-1 transition-opacity duration-[1500ms] ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'} flex flex-col justify-end overflow-hidden ${isBgEnabled ? 'bg-black/70 backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl' : 'pb-4'}`}
-            style={{ maxHeight: `${maxHeight}px` }}
+            className={`flex-1 transition-opacity duration-[1500ms] ease-in-out ${isFading ? 'opacity-0' : 'opacity-100'} flex flex-col justify-end overflow-hidden ${isBgEnabled ? 'backdrop-blur-xl rounded-3xl p-8 border border-white/10 shadow-2xl' : 'pb-4'}`}
+            style={{ 
+              maxHeight: `${maxHeight}px`,
+              ...(isBgEnabled ? { backgroundColor: `rgba(0, 0, 0, ${bgOpacity / 100})` } : {})
+            }}
           >
             <div className="w-full">
               <span 
@@ -402,7 +412,7 @@ function App() {
 
   // Sender UI (Browser)
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-x-hidden">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[100px] pointer-events-none"></div>
 
@@ -472,7 +482,7 @@ function App() {
                 type="text" 
                 placeholder="Contoh: ujian, kuis, tugas penting"
                 value={keywords}
-                onChange={(e) => updateSettings(fontSize, textColor, maxHeight, e.target.value, isBgEnabled)}
+                onChange={(e) => updateSettings(fontSize, textColor, maxHeight, e.target.value, isBgEnabled, bgOpacity)}
                 className="w-full bg-black/30 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-blue-500 transition-colors"
               />
               <p className="text-xs text-slate-500">Kata-kata ini akan bercetak tebal kuning otomatis.</p>
@@ -514,30 +524,39 @@ function App() {
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium text-slate-300">Gunakan Background Kaca</label>
               <button 
-                onClick={() => updateSettings(fontSize, textColor, maxHeight, keywords, !isBgEnabled)}
+                onClick={() => updateSettings(fontSize, textColor, maxHeight, keywords, !isBgEnabled, bgOpacity)}
                 className={`w-12 h-6 rounded-full transition-colors relative ${isBgEnabled ? 'bg-blue-500' : 'bg-slate-700'}`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${isBgEnabled ? 'left-7' : 'left-1'}`}></div>
               </button>
             </div>
 
+            {isBgEnabled && (
+              <div className="space-y-1 mt-1">
+                <label className="text-xs text-slate-400 flex justify-between">
+                  <span>Opasitas Background</span> <span>{bgOpacity}%</span>
+                </label>
+                <input type="range" min="10" max="100" step="5" value={bgOpacity} onChange={(e) => updateSettings(fontSize, textColor, maxHeight, keywords, isBgEnabled, Number(e.target.value))} className="w-full accent-blue-400" />
+              </div>
+            )}
+
             <div className="space-y-1 mt-2">
               <label className="text-xs text-slate-400 flex justify-between">
                 <span>Ukuran Teks</span> <span>{fontSize}px</span>
               </label>
-              <input type="range" min="12" max="96" value={fontSize} onChange={(e) => updateSettings(Number(e.target.value), textColor, maxHeight, keywords, isBgEnabled)} className="w-full accent-blue-400" />
+              <input type="range" min="12" max="96" value={fontSize} onChange={(e) => updateSettings(Number(e.target.value), textColor, maxHeight, keywords, isBgEnabled, bgOpacity)} className="w-full accent-blue-400" />
             </div>
 
             <div className="space-y-1">
               <label className="text-xs text-slate-400 flex justify-between">
                 <span>Batas Tinggi</span> <span>{maxHeight}px</span>
               </label>
-              <input type="range" min="100" max="800" step="50" value={maxHeight} onChange={(e) => updateSettings(fontSize, textColor, Number(e.target.value), keywords, isBgEnabled)} className="w-full accent-blue-400" />
+              <input type="range" min="100" max="800" step="50" value={maxHeight} onChange={(e) => updateSettings(fontSize, textColor, Number(e.target.value), keywords, isBgEnabled, bgOpacity)} className="w-full accent-blue-400" />
             </div>
 
             <div className="space-y-1">
               <label className="text-xs text-slate-400 block mb-2">Warna Teks</label>
-              <input type="color" value={textColor} onChange={(e) => updateSettings(fontSize, e.target.value, maxHeight, keywords, isBgEnabled)} className="w-full h-10 rounded-lg cursor-pointer border-0 p-0 bg-transparent" />
+              <input type="color" value={textColor} onChange={(e) => updateSettings(fontSize, e.target.value, maxHeight, keywords, isBgEnabled, bgOpacity)} className="w-full h-10 rounded-lg cursor-pointer border-0 p-0 bg-transparent" />
             </div>
           </div>
 
