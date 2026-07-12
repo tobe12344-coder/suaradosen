@@ -3,7 +3,7 @@
   "description": "Aplikasi subtitle presentasi suara ke teks melayang.",
   "author": "Antigravity",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
   "main": "main.cjs",
   "scripts": {
