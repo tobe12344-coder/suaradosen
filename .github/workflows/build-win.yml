@@ -1,0 +1,31 @@
+name: Build Electron for Windows
+
+on:
+  workflow_dispatch: # Ini agar kamu bisa menjalankan proses build secara manual via tombol di GitHub
+
+jobs:
+  build-windows:
+    runs-on: windows-latest # Meminta server dengan OS Windows terbaru
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20' # Sesuaikan dengan versi Node.js yang kamu gunakan
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build App
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build:win 
+
+      - name: Upload Artifact (Hasil Build)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Windows-Application
+          path: dist_electron/**/*.exe
