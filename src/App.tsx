@@ -39,7 +39,7 @@ function App() {
   // Receiver: Listen to WebSocket messages
   useEffect(() => {
     const connectWS = () => {
-      const ws = new WebSocket('ws://localhost:4000');
+      const ws = new WebSocket('ws://127.0.0.1:4000');
       
       ws.onopen = () => {
         console.log('Connected to local WS server');
