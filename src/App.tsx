@@ -950,34 +950,34 @@ function App() {
 
   // Sender UI (Browser)
   return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-6 relative overflow-x-hidden">
+    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-start md:justify-center p-4 md:p-6 relative overflow-x-hidden py-8">
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-500/20 rounded-full blur-[100px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-500/20 rounded-full blur-[100px] pointer-events-none"></div>
 
       <div className="w-full max-w-6xl flex flex-col md:flex-row gap-6 relative z-10">
         
         {/* Left Column: Subtitle Display */}
-        <div className="liquid-glass rounded-3xl p-8 flex flex-col gap-6 flex-[3]">
-          <header className="flex justify-between items-center border-b border-white/10 pb-6">
+        <div className="liquid-glass rounded-3xl p-6 md:p-8 flex flex-col gap-6 flex-[3] w-full">
+          <header className="flex flex-col xl:flex-row justify-between items-start xl:items-center border-b border-white/10 pb-6 gap-4">
             <div>
               <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-3">
                 SuaraKami <span className="px-3 py-1 rounded-full liquid-glass-dark text-xs font-medium text-blue-300">Pro</span>
               </h1>
               <p className="text-slate-400 mt-2 text-sm">Dashboard Pengajar - Kendalikan Presentasi Anda.</p>
             </div>
-            <div className="flex items-center gap-6">
-              <div className="liquid-glass-dark px-4 py-2 rounded-xl border border-white/10 flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full xl:w-auto">
+              <div className="liquid-glass-dark px-4 py-2 rounded-xl border border-white/10 flex items-center justify-between sm:justify-start gap-3 w-full sm:w-auto">
                 <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">Kode Sesi</span>
                 <span className="text-2xl font-black text-blue-400 tracking-widest">{sessionCode}</span>
               </div>
-              <div className="flex gap-3">
-              <button onClick={() => window.open('?mode=tts', '_blank')} className="p-3 liquid-glass-dark hover:bg-blue-500/20 text-blue-300 rounded-xl transition-all" title="Buka Mode Mahasiswa (TTS)">
+              <div className="flex gap-3 w-full sm:w-auto">
+              <button onClick={() => window.open('?mode=tts', '_blank')} className="flex-1 sm:flex-none p-3 flex justify-center items-center liquid-glass-dark hover:bg-blue-500/20 text-blue-300 rounded-xl transition-all" title="Buka Mode Mahasiswa (TTS)">
                 <MessageSquare size={20} />
               </button>
-              <button onClick={handleExportPDF} className="p-3 liquid-glass-dark hover:bg-white/10 text-white rounded-xl transition-all" title="Export PDF">
+              <button onClick={handleExportPDF} className="flex-1 sm:flex-none p-3 flex justify-center items-center liquid-glass-dark hover:bg-white/10 text-white rounded-xl transition-all" title="Export PDF">
                 <Download size={20} />
               </button>
-              <button onClick={handleClear} className="p-3 liquid-glass-dark hover:bg-red-500/20 text-red-300 rounded-xl transition-all" title="Hapus Teks">
+              <button onClick={handleClear} className="flex-1 sm:flex-none p-3 flex justify-center items-center liquid-glass-dark hover:bg-red-500/20 text-red-300 rounded-xl transition-all" title="Hapus Teks">
                 <Trash2 size={20} />
               </button>
             </div>
@@ -1023,7 +1023,7 @@ function App() {
         </div>
 
         {/* Right Column: Teaching Features & Settings */}
-        <div className="flex-[2] flex flex-col gap-6 h-[80vh] overflow-y-auto custom-scrollbar pr-2">
+        <div className="flex-[2] flex flex-col gap-6 h-auto md:h-[80vh] overflow-y-auto custom-scrollbar pr-2 w-full">
           
           {/* Antrean Pertanyaan */}
           <div className="liquid-glass rounded-3xl p-6 flex flex-col gap-4 max-h-[350px] flex-shrink-0">
