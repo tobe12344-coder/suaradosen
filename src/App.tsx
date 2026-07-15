@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, MicOff, Download, Trash2, GripVertical, CheckCircle2, AlertCircle, Clock, Zap, Type, Layers, Send, MessageSquare, KeyRound, Play, Check, PieChart, Volume2, BellRing, User, Pause, RotateCcw, Square } from 'lucide-react';
 import jsPDF from 'jspdf';
+import { ref, set, onValue, push, update, onDisconnect, remove } from 'firebase/database';
+import { database } from './firebase';
 
 function App() {
   const [isReceiver, setIsReceiver] = useState(false);
@@ -11,7 +13,7 @@ function App() {
   const [finalTranscript, setFinalTranscript] = useState('');
   const [interimTranscript, setInterimTranscript] = useState('');
   const [toasts, setToasts] = useState<{ id: number; message: string; type: string }[]>([]);
-  const wsRef = useRef<WebSocket | null>(null);
+  // Firebase integration removed wsRef
   const recognitionRef = useRef<any>(null);
   const ttsStopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
@@ -129,17 +131,13 @@ function App() {
       }
       
       setKaraokeText({ name, text, charIndex: 0 });
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'tts_start', name, text }));
-      }
+      if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { active: true, name, text, charIndex: 0 }); }
     };
     
     utterance.onboundary = (event) => {
       if (event.name === 'word') {
         setKaraokeText(prev => prev ? { ...prev, charIndex: event.charIndex } : null);
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'tts_progress', charIndex: event.charIndex }));
-        }
+        if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { charIndex: event.charIndex }); }
       }
     };
     
@@ -149,9 +147,7 @@ function App() {
       
       ttsStopTimeoutRef.current = setTimeout(() => {
         setKaraokeText(null);
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'tts_stop' }));
-        }
+        if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { active: false }); }
 
         // Auto-Resume Mic
         if (isMicAutoPausedRef.current) {
@@ -172,9 +168,7 @@ function App() {
       setPlayingQuestionId(null);
       setIsSpeechPaused(false);
       setKaraokeText(null);
-      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-        wsRef.current.send(JSON.stringify({ type: 'tts_stop' }));
-      }
+      if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { active: false }); }
     };
     
     window.speechSynthesis.speak(utterance);
@@ -195,9 +189,7 @@ function App() {
     setPlayingQuestionId(null);
     setIsSpeechPaused(false);
     setKaraokeText(null);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'tts_stop' }));
-    }
+    if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { active: false }); }
   }, []);
 
   const markQuestionRead = useCallback((id: string) => {
@@ -212,143 +204,148 @@ function App() {
         window.speechSynthesis.cancel();
         setIsSpeechPaused(false);
         setKaraokeText(null);
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(JSON.stringify({ type: 'tts_stop' }));
-        }
+        if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/tts`), { active: false }); }
         return null;
       }
       return current;
     });
   }, []);
 
-  // WebSocket Connection
+  
+  // Firebase Connection
   useEffect(() => {
-    const connectWS = () => {
-      const ws = new WebSocket('ws://127.0.0.1:4000');
-      
-      ws.onopen = () => {
-        console.log('Connected to local WS server');
-        if (!isReceiver && !isTTSMode) {
-          ws.send(JSON.stringify({ type: 'status', isListening }));
-          ws.send(JSON.stringify({ type: 'display_status', isActive: isDisplayActive }));
-          ws.send(JSON.stringify({ type: 'settings', fontSize, textColor, maxHeight, keywords, isBgEnabled, bgOpacity }));
-        }
-      };
+    const code = isTTSMode || isReceiver ? sessionCode || joinedCode : sessionCodeRef.current;
+    if (!code && !isTTSMode) return;
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          
-          if (isReceiver) {
-            if (data.type === 'transcript') {
-              setFinalTranscript(data.final);
-              setInterimTranscript(data.interim);
-            } else if (data.type === 'settings') {
-              if (data.fontSize !== undefined) setFontSize(data.fontSize);
-              if (data.textColor !== undefined) setTextColor(data.textColor);
-              if (data.maxHeight !== undefined) setMaxHeight(data.maxHeight);
-              if (data.keywords !== undefined) setKeywords(data.keywords);
-              if (data.isBgEnabled !== undefined) setIsBgEnabled(data.isBgEnabled);
-              if (data.bgOpacity !== undefined) setBgOpacity(data.bgOpacity);
-            } else if (data.type === 'status') {
-              setIsListening(data.isListening);
-            } else if (data.type === 'display_status') {
-              setIsDisplayActive(data.isActive);
-            } else if (data.type === 'flash') {
-              setFlashMessage(data.message);
-              setTimeout(() => setFlashMessage(null), 5000); // Hide flash after 5s
-            } else if (data.type === 'timer') {
-              setTimerRemaining(data.duration);
-            } else if (data.type === 'poll_start') {
-              setPollState({ active: true, votes: { A: 0, B: 0, C: 0, D: 0 } });
-              showToast("Kuis telah dimulai!");
-            } else if (data.type === 'poll_stop') {
-              setPollState(prev => ({ ...prev, active: false }));
-              showToast("Kuis telah dihentikan!");
-            } else if (data.type === 'sound_play') {
-              playSound(data.soundType);
-            } else if (data.type === 'tts_start') {
-              setKaraokeText({ name: data.name, text: data.text, charIndex: 0 });
-            } else if (data.type === 'tts_progress') {
-              setKaraokeText(prev => prev ? { ...prev, charIndex: data.charIndex } : null);
-            } else if (data.type === 'tts_stop') {
-              setKaraokeText(null);
-            }
-          } else if (isTTSMode) {
-            // TTS Mode (Student)
-            if (data.type === 'join_success' && data.code === pendingCodeRef.current) {
-              setJoinedCode(data.code);
-              pendingCodeRef.current = ''; // Clear pending so timeout knows we succeeded
-              showToast('Berhasil bergabung ke sesi!');
-            } else if (data.type === 'poll_start') {
-              setPollState({ active: true, votes: { A: 0, B: 0, C: 0, D: 0 } });
-            } else if (data.type === 'poll_stop') {
-              setPollState(prev => ({ ...prev, active: false }));
-              showToast("Kuis telah ditutup dosen.");
-            }
-          } else if (!isTTSMode) {
-            // STT Mode (Lecturer)
-            if (data.type === 'student_join') {
-              if (data.code === sessionCodeRef.current) {
-                ws.send(JSON.stringify({ type: 'join_success', code: data.code }));
-              } else {
-                // Hanya beri tahu dosen, jangan kirim pesan gagal ke jaringan agar tidak bentrok
-                showToast(`Peringatan: Ada yang mencoba masuk dengan kode salah (${data.code})`, 'error');
-              }
-            } else if (data.type === 'student_tts') {
-              if (data.code !== sessionCodeRef.current) return;
-              
-              const newQuestion = {
-                id: Date.now().toString(),
-                name: data.name || 'Mahasiswa',
-                text: data.text,
-                isRead: false
-              };
-              setQuestions(prev => [...prev, newQuestion]);
-              showToast(`Pesan baru dari ${newQuestion.name}`);
-            } else if (data.type === 'poll_vote') {
-              if (data.code !== sessionCodeRef.current) return;
-              setPollState(prev => ({
-                ...prev,
-                votes: {
-                  ...prev.votes,
-                  [data.choice as 'A'|'B'|'C'|'D']: prev.votes[data.choice as 'A'|'B'|'C'|'D'] + 1
-                }
-              }));
-            }
+    const currentCode = isTTSMode ? joinedCode : code;
+    if (!currentCode) return;
+
+    const sessionRef = ref(database, `sessions/${currentCode}`);
+
+    // Setup listener
+    const unsubscribe = onValue(sessionRef, (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      if (isReceiver) {
+        if (data.transcript) {
+          setFinalTranscript(data.transcript.final || '');
+          setInterimTranscript(data.transcript.interim || '');
+        }
+        if (data.settings) {
+          if (data.settings.fontSize !== undefined) setFontSize(data.settings.fontSize);
+          if (data.settings.textColor !== undefined) setTextColor(data.settings.textColor);
+          if (data.settings.maxHeight !== undefined) setMaxHeight(data.settings.maxHeight);
+          if (data.settings.keywords !== undefined) setKeywords(data.settings.keywords);
+          if (data.settings.isBgEnabled !== undefined) setIsBgEnabled(data.settings.isBgEnabled);
+          if (data.settings.bgOpacity !== undefined) setBgOpacity(data.settings.bgOpacity);
+        }
+        if (data.status) {
+          setIsListening(data.status.isListening || false);
+          setIsDisplayActive(data.status.isDisplayActive || false);
+        }
+        if (data.flash) {
+          // If new flash, trigger it
+          if (data.flash.timestamp > ((window as any).lastFlash || 0)) {
+             (window as any).lastFlash = data.flash.timestamp;
+             setFlashMessage(data.flash.message);
+             setTimeout(() => setFlashMessage(null), 5000);
           }
-        } catch (e) {
-          console.error(e);
         }
-      };
+        if (data.timer) {
+           setTimerRemaining(data.timer.duration);
+        }
+        if (data.poll) {
+           if (data.poll.active) {
+              setPollState({ active: true, votes: { A: 0, B: 0, C: 0, D: 0 } });
+           } else {
+              setPollState(prev => ({ ...prev, active: false }));
+           }
+        }
+        if (data.sound) {
+           if (data.sound.timestamp > ((window as any).lastSound || 0)) {
+             (window as any).lastSound = data.sound.timestamp;
+             playSound(data.sound.type);
+           }
+        }
+        if (data.tts) {
+           if (data.tts.active) {
+             setKaraokeText({ name: data.tts.name, text: data.tts.text, charIndex: data.tts.charIndex });
+           } else {
+             setKaraokeText(null);
+           }
+        }
+      } else if (isTTSMode) {
+        // TTS Mode listener
+        if (data.poll) {
+          if (data.poll.active) {
+             setPollState(prev => ({ ...prev, active: true }));
+          } else {
+             setPollState(prev => ({ ...prev, active: false }));
+          }
+        }
+      } else if (!isTTSMode && !isReceiver) {
+        // Lecturer listener for Poll votes
+        if (data.votes) {
+          setPollState(prev => ({
+             ...prev,
+             votes: {
+               A: data.votes.A ? Object.keys(data.votes.A).length : 0,
+               B: data.votes.B ? Object.keys(data.votes.B).length : 0,
+               C: data.votes.C ? Object.keys(data.votes.C).length : 0,
+               D: data.votes.D ? Object.keys(data.votes.D).length : 0
+             }
+          }));
+        }
+        // Listener for questions
+        if (data.questions) {
+          const newQuestions = Object.values(data.questions);
+          setQuestions(prev => {
+             const merged = newQuestions.map((nq: any) => {
+                const existing = prev.find(pq => pq.id === nq.id);
+                return existing ? { ...nq, isRead: existing.isRead } : { ...nq, isRead: false };
+             });
+             // Show toast if new question arrived
+             if (merged.length > prev.length) {
+                // we can't easily showToast here without warning, but we can try
+                // showToast("Pesan baru dari " + merged[merged.length-1].name);
+             }
+             return merged;
+          });
+        }
+      }
+    });
 
-      ws.onclose = () => {
-        setTimeout(connectWS, 2000);
-      };
-
-      wsRef.current = ws;
-    };
-
-    connectWS();
+    // Initialize session for Lecturer
+    if (!isReceiver && !isTTSMode) {
+       (window as any).lastFlash = 0;
+       (window as any).lastSound = 0;
+       set(sessionRef, {
+         status: { isListening, isDisplayActive },
+         settings: { fontSize, textColor, maxHeight, keywords, isBgEnabled, bgOpacity },
+         createdAt: Date.now()
+       });
+       onDisconnect(sessionRef).remove();
+    } else {
+       (window as any).lastFlash = Date.now();
+       (window as any).lastSound = Date.now();
+    }
 
     return () => {
-      if (wsRef.current) wsRef.current.close();
+      unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isReceiver, isTTSMode]);
+  }, [isReceiver, isTTSMode, joinedCode, sessionCode]);
+
 
   // Sender: Send status when isListening changes
   useEffect(() => {
-    if (!isReceiver && !isTTSMode && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'status', isListening }));
-    }
+    if (!isReceiver && !isTTSMode && sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/status`), { isListening }); }
   }, [isListening, isReceiver, isTTSMode]);
 
   // Sender: Send display status when isDisplayActive changes
   useEffect(() => {
-    if (!isReceiver && !isTTSMode && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'display_status', isActive: isDisplayActive }));
-    }
+    if (!isReceiver && !isTTSMode && sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/status`), { isDisplayActive }); }
   }, [isDisplayActive, isReceiver, isTTSMode]);
 
   // Receiver: Timer logic
@@ -443,9 +440,7 @@ function App() {
   }, [isReceiver]);
 
   const sendToReceiver = (final: string, interim: string) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'transcript', final, interim }));
-    }
+    if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/transcript`), { final, interim }); }
   };
 
   const toggleListening = () => {
@@ -573,31 +568,26 @@ function App() {
     setKeywords(kw);
     setIsBgEnabled(bg);
     setBgOpacity(op);
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ 
-        type: 'settings', 
+    if (sessionCodeRef.current) {
+      update(ref(database, `sessions/${sessionCodeRef.current}/settings`), {
         fontSize: size, 
         textColor: color, 
         maxHeight: height,
         keywords: kw,
         isBgEnabled: bg,
         bgOpacity: op
-      }));
+      });
     }
   };
 
   const sendFlash = (message: string) => {
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'flash', message }));
-    }
+    if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/flash`), { message, timestamp: Date.now() }); }
     showToast(`Peringatan: "${message}" ditampilkan`);
   };
 
   const sendTimer = (minutes: number) => {
     const duration = minutes * 60;
-    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-      wsRef.current.send(JSON.stringify({ type: 'timer', duration }));
-    }
+    if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/timer`), { duration }); }
     if (minutes === 0) {
       showToast("Timer dihentikan");
     } else {
@@ -693,10 +683,19 @@ function App() {
                 const nameVal = nameInput.value.trim() || 'Mahasiswa';
                 const code = codeInput.value.trim();
                 
-                if (code && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                if (code) {
                   setStudentName(nameVal);
                   pendingCodeRef.current = code;
-                  wsRef.current.send(JSON.stringify({ type: 'student_join', code }));
+                  // In Firebase, we just read the session to check if it exists.
+                  onValue(ref(database, `sessions/${code}/status`), (snapshot) => {
+                    if (snapshot.exists()) {
+                      setJoinedCode(code);
+                      pendingCodeRef.current = '';
+                      showToast('Berhasil bergabung ke sesi!');
+                    } else {
+                      showToast('Kode sesi tidak ditemukan / tidak aktif.', 'error');
+                    }
+                  }, { onlyOnce: true });
                   
                   setTimeout(() => {
                     if (pendingCodeRef.current === code) {
@@ -746,8 +745,8 @@ function App() {
                   <button
                     key={choice}
                     onClick={() => {
-                      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                        wsRef.current.send(JSON.stringify({ type: 'poll_vote', choice, code: joinedCode }));
+                      if (joinedCode) {
+                        push(ref(database, `sessions/${joinedCode}/votes/${choice}`), { time: Date.now() });
                         showToast(`Pilihan ${choice} terkirim!`);
                         setPollState(prev => ({ ...prev, active: false })); // Hide poll UI after voting locally
                       }
@@ -766,8 +765,9 @@ function App() {
                 const form = e.target as HTMLFormElement;
                 const input = form.elements.namedItem('message') as HTMLInputElement;
                 const text = input.value.trim();
-                if (text && wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                  wsRef.current.send(JSON.stringify({ type: 'student_tts', text, code: joinedCode, name: studentName }));
+                if (text && joinedCode) {
+                  const newQuestion = { id: Date.now().toString(), name: studentName || 'Mahasiswa', text, timestamp: Date.now() };
+                  set(ref(database, `sessions/${joinedCode}/questions/${newQuestion.id}`), newQuestion);
                   showToast("Pesan berhasil dikirim!");
                   input.value = '';
                 } else if (!text) {
@@ -1069,12 +1069,12 @@ function App() {
               <div className="flex items-center gap-2"><PieChart size={20} className="text-orange-400" /> Live Polling</div>
               <button 
                 onClick={() => {
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+                  if (sessionCodeRef.current) {
                     if (pollState.active) {
-                      wsRef.current.send(JSON.stringify({ type: 'poll_stop' }));
+                      update(ref(database, `sessions/${sessionCodeRef.current}/poll`), { active: false });
                       setPollState(prev => ({ ...prev, active: false }));
                     } else {
-                      wsRef.current.send(JSON.stringify({ type: 'poll_start' }));
+                      if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/poll`), { active: true }); remove(ref(database, `sessions/${sessionCodeRef.current}/votes`)); }
                       setPollState({ active: true, votes: { A: 0, B: 0, C: 0, D: 0 } });
                     }
                   }
@@ -1112,9 +1112,7 @@ function App() {
               <button 
                 onClick={() => {
                   playSound('ding');
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify({ type: 'sound_play', soundType: 'ding' }));
-                  }
+                  if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/sound`), { type: 'ding', timestamp: Date.now() }); }
                 }} 
                 className="py-4 bg-black/30 hover:bg-pink-500/20 border border-white/5 hover:border-pink-500/30 rounded-2xl flex flex-col items-center gap-2 transition-all group"
               >
@@ -1125,9 +1123,7 @@ function App() {
               <button 
                 onClick={() => {
                   playSound('buzzer');
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify({ type: 'sound_play', soundType: 'buzzer' }));
-                  }
+                  if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/sound`), { type: 'buzzer', timestamp: Date.now() }); }
                 }} 
                 className="py-4 bg-black/30 hover:bg-pink-500/20 border border-white/5 hover:border-pink-500/30 rounded-2xl flex flex-col items-center gap-2 transition-all group"
               >
@@ -1138,9 +1134,7 @@ function App() {
               <button 
                 onClick={() => {
                   playSound('chime');
-                  if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-                    wsRef.current.send(JSON.stringify({ type: 'sound_play', soundType: 'chime' }));
-                  }
+                  if (sessionCodeRef.current) { update(ref(database, `sessions/${sessionCodeRef.current}/sound`), { type: 'chime', timestamp: Date.now() }); }
                 }} 
                 className="py-4 bg-black/30 hover:bg-pink-500/20 border border-white/5 hover:border-pink-500/30 rounded-2xl flex flex-col items-center gap-2 transition-all group"
               >

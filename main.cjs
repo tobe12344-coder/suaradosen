@@ -1,42 +1,8 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
-const express = require('express');
-const cors = require('cors');
-const http = require('http');
-const { WebSocketServer } = require('ws');
 
 let mainWindow;
 
-// 1. Setup Local Server for Web-to-Electron Communication
-function setupServer() {
-  const serverApp = express();
-  serverApp.use(cors());
-  serverApp.use(express.json());
-  serverApp.use(express.static(path.join(__dirname, 'dist')));
-
-  const server = http.createServer(serverApp);
-  const wss = new WebSocketServer({ server });
-
-  wss.on('connection', (ws) => {
-    ws.on('message', (message) => {
-      try {
-        const msgString = message.toString();
-        // Broadcast to all connected clients
-        wss.clients.forEach((client) => {
-          if (client.readyState === 1) { // 1 = OPEN
-            client.send(msgString);
-          }
-        });
-      } catch (e) {
-        console.error('Invalid WS message', e);
-      }
-    });
-  });
-
-  server.listen(4000, () => {
-    console.log('Local speech server running on port 4000');
-  });
-}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -65,7 +31,6 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
-  setupServer();
   createWindow();
 
   app.on('activate', () => {

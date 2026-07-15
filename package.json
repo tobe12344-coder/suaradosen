@@ -28,8 +28,7 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis",
-      "icon": "build/icon.ico"
+      "target": "nsis"
     },
     "mac": {
       "target": "dmg"
@@ -38,15 +37,13 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.3.2",
     "concurrently": "^9.2.3",
-    "cors": "^2.8.6",
     "cross-env": "^10.1.0",
-    "express": "^5.2.1",
+    "firebase": "^12.16.0",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.24.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "tailwindcss": "^4.3.2",
-    "ws": "^8.21.0"
+    "tailwindcss": "^4.3.2"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
