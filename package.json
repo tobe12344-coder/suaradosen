@@ -1,9 +1,9 @@
 {
-  "name": "suaradosen",
+  "name": "suarakami",
   "description": "Aplikasi subtitle presentasi suara ke teks melayang.",
   "author": "Antigravity",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.2.1",
   "type": "module",
   "main": "main.cjs",
   "scripts": {
@@ -17,8 +17,8 @@
     "build:mac": "vite build && electron-builder --mac"
   },
   "build": {
-    "appId": "com.suaradosen.app",
-    "productName": "SuaraDosen Setup",
+    "appId": "com.suarakami.app",
+    "productName": "SuaraKami Setup",
     "directories": {
       "output": "dist_electron"
     },
