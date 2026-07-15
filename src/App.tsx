@@ -839,6 +839,21 @@ function App() {
               </div>
               <p className="text-white/60 text-lg">Tahan dan geser area ini ke posisi yang Anda inginkan.</p>
               
+              <div className="mt-4 flex flex-col gap-2" style={{ WebkitAppRegion: 'no-drag' } as any}>
+                 <label className="text-white/80 font-bold text-sm">Masukkan Kode Sesi Dosen (Wajib agar teks muncul):</label>
+                 <input 
+                   type="text" 
+                   maxLength={4}
+                   value={sessionCode}
+                   onChange={(e) => {
+                     const val = e.target.value.replace(/\D/g, '');
+                     setSessionCode(val);
+                   }}
+                   placeholder="Kode 4 digit"
+                   className="bg-black/50 border border-white/20 rounded-xl px-4 py-2 text-white text-xl text-center w-full max-w-[200px] focus:border-blue-500 outline-none"
+                 />
+              </div>
+
               <div className="mt-6 pt-6 border-t border-white/20">
                 <p className="text-white/40 text-xs font-bold uppercase tracking-widest mb-2">Pratinjau Batas Teks:</p>
                 <div 
