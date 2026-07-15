@@ -984,7 +984,7 @@ function App() {
             </div>
           </header>
 
-          <main className="flex-1 min-h-[400px] overflow-y-auto pr-2 custom-scrollbar flex flex-col justify-end bg-black/20 rounded-2xl p-6 border border-white/5">
+          <main className="h-[300px] md:h-auto md:flex-1 md:min-h-[400px] overflow-y-auto pr-2 custom-scrollbar flex flex-col justify-end bg-black/20 rounded-2xl p-6 border border-white/5">
             <div className="w-full">
               <span className="text-2xl text-slate-200 font-medium leading-relaxed whitespace-pre-wrap">
                 {renderHighlightedText(finalTranscript)}
@@ -1023,7 +1023,7 @@ function App() {
         </div>
 
         {/* Right Column: Teaching Features & Settings */}
-        <div className="flex-[2] flex flex-col gap-6 h-auto md:h-[80vh] overflow-y-auto custom-scrollbar pr-2 w-full">
+        <div className="flex-[2] flex flex-col gap-6 h-auto md:h-[80vh] overflow-visible md:overflow-y-auto custom-scrollbar md:pr-2 w-full">
           
           {/* Antrean Pertanyaan */}
           <div className="liquid-glass rounded-3xl p-6 flex flex-col gap-4 max-h-[350px] flex-shrink-0">
