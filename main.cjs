@@ -7,7 +7,7 @@ let mainWindow;
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 300,
+    height: 450,
     transparent: true,
     frame: false,
     icon: path.join(__dirname, 'build/icon.png'),
