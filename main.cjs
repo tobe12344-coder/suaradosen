@@ -10,7 +10,7 @@ function createWindow() {
     height: 450,
     transparent: true,
     frame: false,
-    icon: path.join(__dirname, 'build/icon.png'),
+    icon: app.isPackaged ? path.join(__dirname, 'dist/logo.png') : path.join(__dirname, 'public/logo.png'),
     alwaysOnTop: true,
     webPreferences: {
       nodeIntegration: true,

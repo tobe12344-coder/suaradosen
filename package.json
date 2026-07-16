@@ -28,10 +28,12 @@
       "package.json"
     ],
     "win": {
-      "target": "nsis"
+      "target": "nsis",
+      "icon": "build/icons/icon.ico"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "build/icons/icon.icns"
     }
   },
   "dependencies": {
@@ -52,6 +54,7 @@
     "@vitejs/plugin-react": "^6.0.3",
     "electron": "^41.7.1",
     "electron-builder": "^26.15.3",
+    "electron-icon-builder": "^2.0.1",
     "oxlint": "^1.71.0",
     "typescript": "~6.0.2",
     "vite": "^8.1.1",

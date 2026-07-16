@@ -26,7 +26,7 @@ function App() {
   // Settings
   const [fontSize, setFontSize] = useState(12);
   const [textColor, setTextColor] = useState('#ffffff');
-  const [maxHeight, setMaxHeight] = useState(300);
+  const [maxHeight, setMaxHeight] = useState(100);
   
   // New Teaching Features State
   const [keywords, setKeywords] = useState('');
