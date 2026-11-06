@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<title>SuaraKami Tutorial</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1920px;height:1080px;overflow:hidden;background:#020617}
+body{font-family:Inter,"Inter Display",system-ui,sans-serif;color:#fff;-webkit-font-smoothing:antialiased}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:#020617}
+.abs{position:absolute}
+.scene{position:absolute;inset:0;display:none}
+.blob{position:absolute;border-radius:50%;filter:blur(120px)}
+
+/* text column */
+.txt{position:absolute;left:110px;top:0;bottom:0;width:580px;display:flex;flex-direction:column;justify-content:center;gap:28px}
+.badge{display:inline-flex;align-self:flex-start;align-items:center;gap:10px;padding:10px 20px;border-radius:999px;background:rgba(59,130,246,.18);border:1px solid rgba(96,165,250,.45);color:#93c5fd;font-weight:800;font-size:20px;letter-spacing:3px}
+.badge .of{color:#64748b;letter-spacing:1px}
+.txt h2{font-size:58px;line-height:1.08;font-weight:800;letter-spacing:-1.5px}
+.txt p{font-size:26px;line-height:1.55;color:#cbd5e1}
+.txt p b{color:#fff}
+.tip{display:flex;gap:16px;align-items:flex-start;padding:20px 22px;border-radius:20px;background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.28);font-size:21px;line-height:1.45;color:#fef3c7}
+.tip svg{flex:none;margin-top:1px}
+.ghost{position:absolute;left:70px;top:40px;font-size:340px;font-weight:900;letter-spacing:-16px;color:rgba(255,255,255,.035);line-height:1}
+
+/* generic ui */
+.card{position:absolute;background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.13);border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.45),inset 0 0 0 1px rgba(255,255,255,.04)}
+.card h3{font-size:22px;font-weight:700;display:flex;align-items:center;gap:10px}
+.hr{height:1px;background:rgba(255,255,255,.1)}
+.btn{display:flex;align-items:center;justify-content:center;gap:12px;border-radius:18px;font-weight:700;border:1px solid rgba(255,255,255,.1)}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:13px;font-weight:600}
+.input{background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);border-radius:16px;color:#fff;display:flex;align-items:center}
+.ph{color:#64748b}
+.caret{display:inline-block;width:2px;height:1em;background:#60a5fa;margin-left:2px;vertical-align:-0.12em}
+.dark{background:rgba(0,0,0,.32);border:1px solid rgba(255,255,255,.1)}
+
+/* browser window */
+.win{position:absolute;border-radius:22px;overflow:hidden;background:#070d1f;border:1px solid rgba(255,255,255,.14);box-shadow:0 40px 110px rgba(0,0,0,.6)}
+.winbar{height:54px;background:#111a30;display:flex;align-items:center;gap:10px;padding:0 20px;border-bottom:1px solid rgba(255,255,255,.08)}
+.winbar i{width:14px;height:14px;border-radius:50%;display:block}
+.url{margin-left:18px;flex:1;height:34px;border-radius:10px;background:#060b18;color:#cbd5e1;font-size:17px;display:flex;align-items:center;padding:0 14px;gap:10px}
+
+/* monitor */
+.monitor{position:absolute}
+.bezel{background:#0b0f19;border-radius:18px;padding:12px;border:1px solid rgba(255,255,255,.14);box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.screen{position:relative;overflow:hidden;border-radius:6px;background:#0f172a}
+.base{position:absolute;left:0;top:0;width:1040px;height:585px;transform-origin:0 0}
+.neck{margin:0 auto;width:90px;height:44px;background:linear-gradient(#1e293b,#0f172a)}
+.foot{margin:0 auto;width:260px;height:12px;border-radius:8px;background:#1e293b}
+.slide{position:absolute;inset:0;background:radial-gradient(circle at 85% 15%,#3730a3 0%,rgba(55,48,163,0) 45%),linear-gradient(135deg,#0f172a 0%,#1e1b4b 100%)}
+.sbar{position:absolute;left:0;top:0;bottom:0;width:16px;background:linear-gradient(#818cf8,#c084fc)}
+.stitle{position:absolute;left:72px;top:64px;font-size:54px;font-weight:800;color:#f8fafc;letter-spacing:-1px}
+.ssub{position:absolute;left:74px;top:138px;font-size:24px;font-weight:600;color:#a5b4fc}
+.sul{position:absolute;left:74px;top:220px;font-size:27px;color:#cbd5e1;font-weight:500}
+.sul div{margin-bottom:22px;display:flex;gap:14px;align-items:center}
+.sul div:before{content:"";width:12px;height:12px;border-radius:3px;background:#818cf8;display:block}
+.sdeco{position:absolute;right:64px;top:210px;width:250px}
+.sdeco div{height:46px;border-radius:10px;border:3px solid rgba(129,140,248,.6);margin-bottom:14px;background:rgba(99,102,241,.15)}
+.ov{position:absolute;inset:0}
+.live{position:absolute;left:56px;right:56px;bottom:34px;display:flex;align-items:flex-end;overflow:hidden}
+.subt{font-weight:600;line-height:1.2;color:#fff;text-shadow:0 0 10px rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.9),0 0 2px #000}
+.hl{color:#facc15;font-weight:900;background:rgba(0,0,0,.35);padding:0 8px;border-radius:10px;text-shadow:0 0 16px rgba(250,204,21,.9)}
+
+/* phone */
+.phone{position:absolute;width:340px;height:700px;border-radius:52px;background:#0b0f19;padding:12px;border:1px solid rgba(255,255,255,.18);box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.pscreen{position:relative;width:100%;height:100%;border-radius:42px;overflow:hidden;background:#020617}
+.pstatus{height:44px;display:flex;justify-content:space-between;align-items:center;padding:0 28px;font-size:14px;font-weight:700;color:#e2e8f0}
+.notch{width:96px;height:26px;border-radius:14px;background:#000}
+.purl{margin:0 14px;height:32px;border-radius:10px;background:#0f172a;font-size:12.5px;color:#94a3b8;display:flex;align-items:center;justify-content:center;gap:6px}
+.pbody{position:absolute;left:18px;right:18px;top:96px;bottom:18px}
+.ptoast{position:absolute;left:16px;right:16px;bottom:26px;padding:12px 14px;border-radius:16px;background:rgba(15,23,42,.95);border:1px solid rgba(34,197,94,.55);font-size:14px;display:flex;align-items:center;gap:10px;font-weight:600}
+
+#cursor{position:absolute;left:0;top:0;width:44px;height:44px;z-index:50;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+#ripple{position:absolute;left:0;top:0;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;border:4px solid #60a5fa;z-index:49;opacity:0}
+#prog{position:absolute;left:110px;right:110px;bottom:42px;height:8px;display:flex;gap:12px;z-index:40}
+#prog div{flex:1;border-radius:4px;background:rgba(255,255,255,.12);overflow:hidden}
+#prog div i{display:block;height:100%;width:0;background:linear-gradient(90deg,#3b82f6,#a855f7)}
+#fade{position:absolute;inset:0;background:#000;z-index:60;opacity:0}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="blob" id="bg1" style="width:900px;height:900px;background:rgba(59,130,246,.30)"></div>
+  <div class="blob" id="bg2" style="width:900px;height:900px;background:rgba(168,85,247,.26)"></div>
+  <div class="blob" id="bg3" style="width:600px;height:600px;background:rgba(236,72,153,.12)"></div>
+  <div id="prog"></div>
+  <div id="ripple"></div>
+  <div id="cursor"><svg width="44" height="44" viewBox="0 0 24 24"><path d="M4 2 L4 19 L8.5 14.8 L11.5 21.5 L14.2 20.3 L11.3 13.8 L17.5 13.8 Z" fill="#fff" stroke="#0f172a" stroke-width="1.3" stroke-linejoin="round"/></svg></div>
+  <div id="fade"></div>
+</div>
+<script>
+// ---------------------------------------------------------------- helpers
+const FPS = 30, DUR = 99.5;
+const stage = document.getElementById('stage');
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const p = (t, a, b) => clamp((t - a) / (b - a));
+const eo = x => 1 - Math.pow(1 - x, 3);
+const eio = x => x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+const back = x => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2); };
+const lerp = (a, b, x) => a + (b - a) * x;
+const $ = s => document.querySelector(s);
+function tf(el, { x = 0, y = 0, s = 1, r = 0, o } = {}) {
+  el.style.transform = `translate(${x}px,${y}px) scale(${s}) rotate(${r}deg)`;
+  if (o !== undefined) el.style.opacity = o;
+}
+// pop-in with slight overshoot
+function pop(el, t, a, d = .55, { dy = 30, dx = 0, s0 = .9 } = {}) {
+  const k = p(t, a, a + d);
+  tf(el, { x: (1 - eo(k)) * dx, y: (1 - eo(k)) * dy, s: lerp(s0, 1, back(k)), o: eo(k) });
+}
+function fadeEl(el, t, a, d = .35) { el.style.opacity = eo(p(t, a, a + d)); }
+const caret = t => (Math.floor(t * 2.4) % 2 === 0) ? '<span class="caret"></span>' : '<span class="caret" style="opacity:0"></span>';
+
+const SFX = [];
+const sfx = (t, type) => SFX.push({ t, type });
+// returns fn(t) -> typed substring; registers key sounds
+function typer(t0, str, cps = 12) {
+  for (let i = 0; i < str.length; i++) if (str[i] !== ' ') sfx(t0 + i / cps, 'key');
+  return t => str.slice(0, clamp(Math.floor((t - t0) * cps) + 1, 0, str.length) * (t >= t0 ? 1 : 0));
+}
+
+// ---------------------------------------------------------------- icons (lucide-style)
+const P = {
+  mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/>',
+  micoff: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/><line x1="2" x2="22" y1="2" y2="22"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  msg: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3" fill="currentColor"/>',
+  pause: '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>',
+  stop: '<rect x="5" y="5" width="14" height="14" rx="2"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  checkc: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  pie: '<path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>',
+  type: '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/>',
+  layers: '<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+  laptop: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M2 20h20"/>',
+  monitor: '<rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/>',
+  phone: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+  key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/>',
+  send: '<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+  zap: '<path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>',
+  alert: '<circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/>',
+  bulb: '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  vol: '<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  lock: '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  grip: '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>',
+  replay: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+};
+const ico = (n, s = 24, c = 'currentColor', sw = 2) =>
+  `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round">${P[n]}</svg>`;
+const LOGO = '../public/logo.png';
+
+// ---------------------------------------------------------------- shared mock builders
+function txt(n, title, desc, tip) {
+  return `<div class="ghost">0${n}</div><div class="txt">
+    <div class="badge"><span>LANGKAH ${n}</span><span class="of">/ 7</span></div>
+    <h2>${title}</h2><p>${desc}</p>
+    ${tip ? `<div class="tip">${ico('bulb', 26, '#fde047')}<span>${tip}</span></div>` : ''}</div>`;
+}
+function animTxt(el, lt) {
+  el.querySelectorAll('.txt > *').forEach((k, i) => {
+    const kk = p(lt, .15 + i * .14, .8 + i * .14);
+    tf(k, { x: (1 - eo(kk)) * -50, o: eo(kk) });
+  });
+  const g = el.querySelector('.ghost');
+  if (g) tf(g, { x: (1 - eo(p(lt, 0, 1.2))) * -80, o: eo(p(lt, 0, 1.2)) });
+}
+function slide() {
+  return `<div class="slide"><div class="sbar"></div>
+    <div class="stitle">Normalisasi Basis Data</div>
+    <div class="ssub">Pertemuan 5 · Sistem Basis Data</div>
+    <div class="sul"><div>1NF — Nilai atomik</div><div>2NF — Tanpa ketergantungan parsial</div><div>3NF — Tanpa ketergantungan transitif</div></div>
+    <div class="sdeco"><div></div><div style="width:80%;margin-left:20%"></div><div style="width:60%;margin-left:40%"></div></div></div>`;
+}
+function monitor(id, left, top, w, ovHTML = '') {
+  const sw = w - 24, sh = Math.round(sw * 9 / 16), sc = sw / 1040;
+  return `<div class="monitor" id="${id}" style="left:${left}px;top:${top}px;width:${w}px">
+    <div class="bezel"><div class="screen" style="width:${sw}px;height:${sh}px">
+      <div class="base" style="transform:scale(${sc})">${slide()}<div class="ov" id="${id}-ov">${ovHTML}</div></div>
+    </div></div><div class="neck"></div><div class="foot"></div></div>`;
+}
+function phone(id, left, top, body) {
+  return `<div class="phone" id="${id}" style="left:${left}px;top:${top}px"><div class="pscreen">
+    <div class="abs" style="width:300px;height:300px;right:-120px;top:-60px;border-radius:50%;background:rgba(59,130,246,.18);filter:blur(60px)"></div>
+    <div class="abs" style="width:300px;height:300px;left:-120px;bottom:-60px;border-radius:50%;background:rgba(168,85,247,.16);filter:blur(60px)"></div>
+    <div class="pstatus"><span>09:30</span><span class="notch"></span><span>5G</span></div>
+    <div class="purl">${ico('lock', 12, '#94a3b8')} suaradosen-app-pbd.web.app/?mode=tts</div>
+    <div class="pbody">${body}</div></div></div>`;
+}
+const phoneHeader = `<div style="text-align:center;padding:10px 0 16px;border-bottom:1px solid rgba(255,255,255,.1)">
+  <div style="font-size:24px;font-weight:800;display:flex;align-items:center;justify-content:center;gap:8px">${ico('msg', 24, '#60a5fa')} SuaraKami</div>
+  <span class="pill" style="margin-top:8px;background:rgba(0,0,0,.4);color:#93c5fd">TTS Mode</span></div>`;
+const toast = (id, msg, err) => `<div class="ptoast" id="${id}" style="opacity:0">${ico('checkc', 18, '#4ade80')}${msg}</div>`;
+function waveBars(n, cls) { let s = ''; for (let i = 0; i < n; i++) s += `<i class="${cls}" style="display:block;width:6px;border-radius:3px;background:currentColor"></i>`; return s; }
+function animWave(sel, t, amp, base = 6, maxH = 40) {
+  document.querySelectorAll(sel).forEach((b, i) => {
+    const h = base + amp * maxH * (0.35 + 0.65 * Math.abs(Math.sin(t * 7.3 + i * 1.7) * Math.cos(t * 3.1 + i * .6)));
+    b.style.height = h + 'px';
+  });
+}
+
+// ---------------------------------------------------------------- scene system + cursor
+const scenes = [];
+function scene(a, b, html, update, step) {
+  const el = document.createElement('div');
+  el.className = 'scene'; el.innerHTML = html;
+  stage.insertBefore(el, $('#prog'));
+  scenes.push({ a, b, el, update, step });
+  if (a > 0) sfx(a + .05, 'whoosh');
+  return el;
+}
+const CUR = []; // groups of keyframes
+function cursorTrack(kfs) { CUR.push(kfs); kfs.forEach(k => { if (k.click) sfx(k.t, 'click'); }); }
+function kfPos(k) {
+  if (Array.isArray(k.at)) return { x: k.at[0], y: k.at[1] };
+  const el = $(k.at); const r = el.getBoundingClientRect();
+  return { x: r.left + r.width / 2 + (k.dx || 0), y: r.top + r.height / 2 + (k.dy || 0) };
+}
+function renderCursor(t) {
+  const cur = $('#cursor'), rip = $('#ripple');
+  cur.style.opacity = 0; rip.style.opacity = 0;
+  for (const g of CUR) {
+    const t0 = g[0].t - .5, t1 = g[g.length - 1].t + .6;
+    if (t < t0 || t > t1) continue;
+    let pos;
+    if (t <= g[0].t) pos = kfPos(g[0]);
+    else if (t >= g[g.length - 1].t) pos = kfPos(g[g.length - 1]);
+    else {
+      let i = 0; while (g[i + 1].t < t) i++;
+      const A = g[i], B = g[i + 1];
+      const ms = Math.max(A.t, B.t - (B.move || .85));
+      const k = eio(p(t, ms, B.t));
+      const pa = kfPos(A), pb = kfPos(B);
+      pos = { x: lerp(pa.x, pb.x, k), y: lerp(pa.y, pb.y, k) };
+    }
+    const o = Math.min(eo(p(t, t0, t0 + .35)), 1 - p(t, t1 - .35, t1));
+    let s = 1;
+    for (const k of g) if (k.click) {
+      const d = t - k.t;
+      if (d > -.08 && d < .16) s = .82;
+      if (d >= 0 && d < .5) { const q = d / .5; rip.style.opacity = (1 - q) * o; rip.style.transform = `translate(${pos.x}px,${pos.y}px) scale(${.3 + q * 1.1})`; }
+    }
+    cur.style.opacity = o;
+    cur.style.transform = `translate(${pos.x - 7}px,${pos.y - 4}px) scale(${s})`;
+    cur.style.transformOrigin = '7px 4px';
+  }
+}
+
+// ================================================================= SCENE 0 — INTRO (0–6)
+{
+  const a = 0, b = 6;
+  let bars = ''; for (let i = 0; i < 28; i++) bars += `<i style="display:block;width:8px;border-radius:4px;background:linear-gradient(#60a5fa,#c084fc)"></i>`;
+  const el = scene(a, b, `
+    <div class="abs" id="i-glow" style="left:660px;top:70px;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(129,140,248,.45),rgba(129,140,248,0) 65%)"></div>
+    <div class="abs" id="i-ring" style="left:810px;top:220px;width:300px;height:300px;border-radius:50%;border:3px solid rgba(147,197,253,.6)"></div>
+    <img id="i-logo" src="${LOGO}" style="position:absolute;left:830px;top:240px;width:260px;height:260px;border-radius:60px;box-shadow:0 30px 80px rgba(0,0,0,.5)">
+    <div id="i-title" class="abs" style="left:0;right:0;top:540px;text-align:center;font-size:124px;font-weight:900;letter-spacing:-4px;background:linear-gradient(90deg,#fff 20%,#c7d2fe 55%,#f9a8d4);-webkit-background-clip:text;background-clip:text;color:transparent">SuaraKami</div>
+    <div id="i-sub" class="abs" style="left:0;right:0;top:700px;text-align:center;font-size:40px;font-weight:700;color:#bfdbfe">Panduan Penggunaan · Step by Step</div>
+    <div id="i-wave" class="abs" style="left:660px;top:790px;width:600px;height:90px;display:flex;align-items:center;justify-content:center;gap:9px">${bars}</div>
+    <div id="i-tag" class="abs" style="left:0;right:0;top:905px;text-align:center;font-size:27px;color:#94a3b8">Ubah suara dosen menjadi subtitle presentasi secara real-time</div>
+  `, (t, lt) => {
+    pop($('#i-logo'), lt, .2, .8, { dy: 60, s0: .4 });
+    const fl = Math.sin(lt * 1.6) * 6 * p(lt, 1, 1.6);
+    $('#i-logo').style.transform += ` translateY(${fl}px)`;
+    const rk = p(lt, .5, 1.8); tf($('#i-ring'), { s: lerp(.9, 1.6, eo(rk)), o: (1 - rk) * .9 });
+    tf($('#i-glow'), { s: .9 + .08 * Math.sin(lt * 2), o: eo(p(lt, .2, 1.2)) });
+    pop($('#i-title'), lt, .9, .7, { dy: 50, s0: .96 });
+    pop($('#i-sub'), lt, 1.3, .6, { dy: 30, s0: 1 });
+    pop($('#i-wave'), lt, 1.6, .5, { dy: 0, s0: .8 });
+    pop($('#i-tag'), lt, 2.0, .6, { dy: 20, s0: 1 });
+    el.querySelectorAll('#i-wave i').forEach((bar, i) => {
+      const env = Math.sin(Math.PI * (i + .5) / 28);
+      bar.style.height = (10 + 70 * env * Math.abs(Math.sin(lt * 4.2 + i * .55) * Math.cos(lt * 1.7 + i * .3))) + 'px';
+    });
+  });
+  sfx(.25, 'pop');
+}
+
+// ================================================================= SCENE 1 — OVERVIEW (6–14)
+{
+  const a = 6, b = 14;
+  const node = (id, l, tp, icon, color, title, desc) => `
+    <div class="card" id="${id}" style="left:${l}px;top:${tp}px;width:390px;height:190px;padding:26px;display:flex;gap:20px;align-items:center">
+      <div style="flex:none;width:84px;height:84px;border-radius:24px;display:flex;align-items:center;justify-content:center;background:${color}22;border:1px solid ${color}66">${ico(icon, 42, color)}</div>
+      <div><div style="font-size:25px;font-weight:800;line-height:1.15;white-space:nowrap">${title}</div><div style="font-size:17px;color:#94a3b8;margin-top:8px;line-height:1.4">${desc}</div></div></div>`;
+  const lbl = (id, x, y, s) => `<div id="${id}" class="abs pill" style="left:${x}px;top:${y}px;font-size:16px;background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.15);color:#cbd5e1;padding:6px 14px">${s}</div>`;
+  const el = scene(a, b, `
+    <div id="o-title" class="abs" style="left:0;right:0;top:100px;text-align:center;font-size:64px;font-weight:800;letter-spacing:-1.5px">Bagaimana SuaraKami Bekerja?</div>
+    <div id="o-sub" class="abs" style="left:0;right:0;top:190px;text-align:center;font-size:28px;color:#94a3b8">Satu <b style="color:#93c5fd">kode sesi</b> menghubungkan tiga perangkat secara real-time</div>
+    <svg class="abs" style="left:0;top:0" width="1920" height="1080" id="o-svg">
+      <defs><linearGradient id="lg" x1="0" x2="1"><stop offset="0" stop-color="#60a5fa"/><stop offset="1" stop-color="#c084fc"/></linearGradient></defs>
+      <path id="o-p1" d="M570,620 L850,620" stroke="url(#lg)" stroke-width="4" fill="none" stroke-dasharray="3 14" stroke-linecap="round"/>
+      <path id="o-p2" d="M1070,580 C1200,520 1240,440 1350,440" stroke="url(#lg)" stroke-width="4" fill="none" stroke-dasharray="3 14" stroke-linecap="round"/>
+      <path id="o-p3" d="M1350,800 C1240,800 1200,720 1070,660" stroke="url(#lg)" stroke-width="4" fill="none" stroke-dasharray="3 14" stroke-linecap="round"/>
+      <g id="o-dots"></g>
+    </svg>
+    <div class="abs" id="o-hub" style="left:850px;top:510px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#1e3a8a,#0f172a);border:2px solid rgba(147,197,253,.55);box-shadow:0 0 80px rgba(59,130,246,.45);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+      ${ico('cloud', 44, '#93c5fd')}
+      <div style="font-size:14px;font-weight:800;letter-spacing:3px;color:#94a3b8;margin-top:6px">KODE SESI</div>
+      <div style="font-size:46px;font-weight:900;letter-spacing:6px;color:#60a5fa">4827</div>
+    </div>
+    ${node('o-n1', 180, 525, 'laptop', '#60a5fa', 'Dashboard Dosen', 'Chrome di laptop dosen')}
+    ${node('o-n2', 1350, 345, 'monitor', '#c084fc', 'Layar Subtitle', 'Aplikasi desktop di proyektor')}
+    ${node('o-n3', 1350, 705, 'phone', '#f472b6', 'HP Mahasiswa', 'Mode TTS: tanya & kuis')}
+    ${lbl('o-l1', 615, 572, 'suara → teks')}
+    ${lbl('o-l2', 1130, 448, 'subtitle live')}
+    ${lbl('o-l3', 1110, 760, 'pertanyaan & vote')}
+  `, (t, lt) => {
+    pop($('#o-title'), lt, .1, .6, { dy: 30, s0: 1 });
+    pop($('#o-sub'), lt, .35, .6, { dy: 20, s0: 1 });
+    pop($('#o-hub'), lt, .5, .7, { dy: 0, s0: .3 });
+    tf($('#o-hub'), { s: lerp(.3, 1, back(p(lt, .5, 1.2))) * (1 + .02 * Math.sin(lt * 3)), o: eo(p(lt, .5, 1.2)) });
+    pop($('#o-n1'), lt, 1.0, .6, { dx: -60, dy: 0 });
+    pop($('#o-n2'), lt, 1.3, .6, { dx: 60, dy: 0 });
+    pop($('#o-n3'), lt, 1.6, .6, { dx: 60, dy: 0 });
+    const paths = ['#o-p1', '#o-p2', '#o-p3'];
+    let dots = '';
+    paths.forEach((ps, i) => {
+      const pe = $(ps); const k = p(lt, 2.0 + i * .2, 2.6 + i * .2);
+      pe.style.opacity = k; pe.style.strokeDashoffset = -lt * 40;
+      const L = pe.getTotalLength();
+      if (k > 0) for (let j = 0; j < 2; j++) {
+        const f = ((lt - 2) * .45 + j * .5) % 1; const pt = pe.getPointAtLength(f * L);
+        dots += `<circle cx="${pt.x}" cy="${pt.y}" r="7" fill="#fff" opacity="${k}" style="filter:drop-shadow(0 0 8px #93c5fd)"/>`;
+      }
+    });
+    $('#o-dots').innerHTML = dots;
+    pop($('#o-l1'), lt, 2.6, .5, { dy: 10 }); pop($('#o-l2'), lt, 2.8, .5, { dy: 10 }); pop($('#o-l3'), lt, 3.0, .5, { dy: 10 });
+  });
+}
+
+// ================================================================= SCENE 2 — STEP 1 Dashboard (14–23)
+{
+  const a = 14, b = 23;
+  const typeURL = typer(a + 1.15, 'suaradosen-app-pbd.web.app', 20);
+  const sideCard = (icon, c, title, extra = '') => `<div class="card" style="position:relative;height:148px;padding:20px 22px;border-radius:22px">
+      <h3 style="font-size:19px">${ico(icon, 20, c)} ${title} ${extra}</h3>
+      <div class="hr" style="margin:14px 0"></div>
+      <div style="height:12px;border-radius:6px;background:rgba(255,255,255,.08);width:80%"></div>
+      <div style="height:12px;border-radius:6px;background:rgba(255,255,255,.06);width:55%;margin-top:12px"></div></div>`;
+  const el = scene(a, b, txt(1, 'Buka Dashboard Dosen',
+    'Buka SuaraKami di <b>Google Chrome</b> pada laptop dosen. <b>Kode sesi 4 digit</b> dibuat otomatis setiap kali dashboard dibuka.',
+    'Gunakan Google Chrome agar fitur pengenalan suara berjalan dengan baik.') + `
+    <div class="win" id="b2-win" style="left:740px;top:170px;width:1080px;height:730px">
+      <div class="winbar"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i>
+        <div class="url" id="b2-url">${ico('lock', 15, '#64748b')}<span id="b2-urlt"></span></div></div>
+      <div id="b2-load" class="abs" style="left:0;top:54px;height:3px;background:#3b82f6;width:0"></div>
+      <div id="b2-body" class="abs" style="left:0;right:0;top:56px;bottom:0;padding:28px 30px;opacity:0">
+        <div style="position:absolute;width:400px;height:400px;left:-100px;top:-100px;border-radius:50%;background:rgba(59,130,246,.15);filter:blur(80px)"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:22px;border-bottom:1px solid rgba(255,255,255,.1)">
+          <div><div style="font-size:34px;font-weight:800;display:flex;align-items:center;gap:12px">SuaraKami <span class="pill" style="background:rgba(0,0,0,.4);color:#93c5fd">Pro</span></div>
+          <div style="color:#94a3b8;font-size:16px;margin-top:6px">Dashboard Pengajar - Kendalikan Presentasi Anda.</div></div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div id="b2-code" class="dark" style="border-radius:16px;padding:10px 18px;display:flex;align-items:center;gap:14px">
+              <span style="font-size:13px;font-weight:800;letter-spacing:2px;color:#94a3b8">KODE SESI</span>
+              <span id="b2-digits" style="font-size:34px;font-weight:900;letter-spacing:6px;color:#60a5fa;font-variant-numeric:tabular-nums">4827</span></div>
+            <div class="dark btn" style="width:52px;height:52px;border-radius:14px;color:#93c5fd">${ico('msg', 22)}</div>
+            <div class="dark btn" style="width:52px;height:52px;border-radius:14px">${ico('download', 22)}</div>
+            <div class="dark btn" style="width:52px;height:52px;border-radius:14px;color:#fca5a5">${ico('trash', 22)}</div>
+          </div></div>
+        <div style="display:flex;gap:22px;margin-top:24px">
+          <div style="flex:1">
+            <div class="dark" style="height:400px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:#64748b;font-size:18px">
+              <span style="opacity:.35">${ico('micoff', 54)}</span>Mulai presentasi dengan menekan tombol mikrofon.</div>
+            <div style="display:flex;justify-content:center;margin-top:20px"><div class="btn" style="width:290px;height:72px;background:#2563eb;font-size:22px;box-shadow:0 0 30px rgba(37,99,235,.45)">${ico('mic', 28)} Mulai Mikrofon</div></div>
+          </div>
+          <div style="width:330px;display:flex;flex-direction:column;gap:16px">
+            ${sideCard('msg', '#60a5fa', 'Antrean Q&amp;A', '<span class="pill" style="margin-left:auto;background:rgba(59,130,246,.2);color:#93c5fd">0 Baru</span>')}
+            ${sideCard('pie', '#fb923c', 'Live Polling')}
+            ${sideCard('vol', '#f472b6', 'Soundboard')}
+          </div></div>
+        <div id="b2-spot" class="abs" style="border-radius:18px;box-shadow:0 0 0 3000px rgba(2,6,23,.66);opacity:0"></div>
+        <div id="b2-ring" class="abs" style="border-radius:22px;border:3px solid #60a5fa;opacity:0"></div>
+      </div>
+    </div>
+    <div id="b2-call" class="abs" style="opacity:0;padding:18px 24px;border-radius:20px;background:#1d4ed8;font-size:21px;font-weight:600;line-height:1.4;width:430px;box-shadow:0 20px 50px rgba(29,78,216,.5)">
+      <div style="position:absolute;top:-10px;right:90px;width:22px;height:22px;background:#1d4ed8;transform:rotate(45deg)"></div>
+      Catat kode ini — dipakai oleh <b>layar subtitle</b> &amp; <b>mahasiswa</b>.</div>
+  `, (t, lt) => {
+    animTxt(el, lt);
+    pop($('#b2-win'), lt, .3, .7, { dy: 60, s0: .94 });
+    $('#b2-urlt').innerHTML = typeURL(t) + (lt > .9 && lt < 2.9 ? caret(t) : '');
+    const lk = p(lt, 2.7, 3.1);
+    $('#b2-load').style.width = (lk * 100) + '%'; $('#b2-load').style.opacity = 1 - p(lt, 3.1, 3.3);
+    fadeEl($('#b2-body'), t, a + 3.0, .4);
+    // slot-machine digits
+    const dg = '4827'.split('').map((d, i) => lt < 3.4 + i * .18 ? ((Math.floor(lt * 30) * 7 + i * 3) % 10) : d).join('');
+    $('#b2-digits').textContent = dg;
+    // spotlight
+    const code = $('#b2-code'), body = $('#b2-body');
+    const rc = code.getBoundingClientRect(), rb = body.getBoundingClientRect();
+    const sp = $('#b2-spot'), ring = $('#b2-ring');
+    const sk = eo(p(lt, 4.7, 5.2)) * (1 - p(lt, 8.3, 8.8));
+    Object.assign(sp.style, { left: (rc.left - rb.left - 8) + 'px', top: (rc.top - rb.top - 8) + 'px', width: (rc.width + 16) + 'px', height: (rc.height + 16) + 'px', opacity: sk });
+    const pulse = ((lt - 5) % 1.2) / 1.2;
+    Object.assign(ring.style, { left: (rc.left - rb.left - 8) + 'px', top: (rc.top - rb.top - 8) + 'px', width: (rc.width + 16) + 'px', height: (rc.height + 16) + 'px' });
+    tf(ring, { s: 1 + pulse * .25, o: lt > 5 ? (1 - pulse) * sk : 0 });
+    const call = $('#b2-call');
+    call.style.left = (rc.right - 430 + 40) + 'px'; call.style.top = (rc.bottom + 30) + 'px';
+    pop(call, lt, 5.2, .5, { dy: 20 });
+    if (lt > 8.3) call.style.opacity = 1 - p(lt, 8.3, 8.8);
+  }, 1);
+  cursorTrack([{ t: a + .6, at: [1500, 700] }, { t: a + 1.0, at: '#b2-url', dx: -150, click: true }, { t: a + 4.9, at: '#b2-code', dx: 60, dy: 10 }, { t: a + 7.6, at: '#b2-code', dx: 60, dy: 10 }]);
+  sfx(a + 5.0, 'pop');
+}
+
+// ================================================================= SCENE 3 — STEP 2 Desktop app (23–34)
+{
+  const a = 23, b = 34;
+  const typeCode = typer(a + 3.0, '4827', 7);
+  const ov = `
+    <div id="m3-dock" class="abs" style="left:350px;bottom:18px;width:340px;height:76px;border-radius:22px;background:rgba(15,23,42,.55);border:1px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;gap:16px">
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#38bdf8,#2563eb)"></div>
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#fbbf24,#f97316)"></div>
+      <img id="m3-app" src="${LOGO}" style="width:52px;height:52px;border-radius:14px">
+      <div style="width:52px;height:52px;border-radius:14px;background:linear-gradient(135deg,#f87171,#be123c)"></div></div>
+    <div id="m3-setup" class="abs" style="left:150px;top:50px;width:740px;padding:26px 30px;border-radius:26px;border:3px dashed rgba(255,255,255,.4);background:rgba(2,6,23,.82);opacity:0">
+      <div style="display:flex;align-items:center;gap:12px;font-size:25px;font-weight:800;letter-spacing:1px;color:rgba(255,255,255,.9)"><span id="m3-grip" style="color:rgba(255,255,255,.55);display:flex">${ico('grip', 30)}</span>MODE PENGATURAN POSISI</div>
+      <div style="font-size:19px;color:rgba(255,255,255,.6);margin-top:6px">Tahan dan geser area ini ke posisi yang Anda inginkan.</div>
+      <div style="font-size:17px;font-weight:700;color:rgba(255,255,255,.85);margin-top:18px">Masukkan Kode Sesi Dosen (Wajib agar teks muncul):</div>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:10px">
+        <div id="m3-in" class="input" style="width:220px;height:56px;justify-content:center;font-size:28px;font-weight:800;letter-spacing:6px;border-radius:14px"></div>
+        <div id="m3-ok" class="pill" style="font-size:16px;background:rgba(34,197,94,.18);color:#86efac;border:1px solid rgba(34,197,94,.5);opacity:0">${ico('check', 16)} Kode tersimpan</div></div>
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.2);font-size:13px;font-weight:800;letter-spacing:2px;color:rgba(255,255,255,.4)">PRATINJAU BATAS TEKS:</div>
+      <div style="margin-top:8px;padding:10px 0;border-top:2px dashed rgba(96,165,250,.5);border-bottom:2px dashed rgba(96,165,250,.5);background:rgba(96,165,250,.1);font-size:22px" class="subt">Ini adalah contoh teks subtitle saat presentasi. <span class="hl">kata_penting</span> akan tersorot.</div>
+    </div>`;
+  const el = scene(a, b, txt(2, 'Jalankan Aplikasi Subtitle',
+    'Buka aplikasi desktop SuaraKami di komputer yang tersambung ke proyektor. <b>Masukkan kode sesi</b>, lalu <b>geser jendela</b> ke posisi yang nyaman dibaca.',
+    'Aplikasi tersedia untuk Windows (.exe) dan macOS (.dmg).') + monitor('m3', 760, 190, 1060, ov), (t, lt) => {
+    animTxt(el, lt);
+    pop($('#m3'), lt, .25, .7, { dy: 60, s0: .95 });
+    const dk = p(lt, .5, .9) * (1 - p(lt, 1.9, 2.2));
+    tf($('#m3-dock'), { y: (1 - eo(p(lt, .5, .9))) * 60, o: dk });
+    const ak = lt > 1.35 && lt < 1.6 ? 1 - Math.sin(Math.PI * p(lt, 1.35, 1.6)) * .15 : 1;
+    tf($('#m3-app'), { s: ak });
+    const st = $('#m3-setup');
+    const sk = p(lt, 1.7, 2.3);
+    const dragY = lerp(0, 585 - st.offsetHeight - 22 - 50, eio(p(lt, 5.7, 7.1)));
+    tf(st, { y: dragY + (1 - eo(sk)) * 40, s: lerp(.85, 1, back(sk)), o: eo(sk) });
+    st.style.borderColor = (lt > 5.4 && lt < 7.3) ? 'rgba(96,165,250,.9)' : 'rgba(255,255,255,.4)';
+    const code = typeCode(t);
+    $('#m3-in').innerHTML = (code || (lt < 2.85 ? '<span class="ph" style="font-size:18px;letter-spacing:0;font-weight:500">Kode 4 digit</span>' : '')) + (lt > 2.85 && lt < 4.6 ? caret(t) : '');
+    $('#m3-in').style.borderColor = lt > 4.0 ? 'rgba(34,197,94,.7)' : (lt > 2.85 ? '#3b82f6' : 'rgba(255,255,255,.12)');
+    pop($('#m3-ok'), lt, 4.1, .4, { dy: 0, dx: -10 });
+  }, 2);
+  cursorTrack([{ t: a + .9, at: [1600, 800] }, { t: a + 1.35, at: '#m3-app', click: true }, { t: a + 1.5, at: '#m3-app', click: true, move: .1 },
+    { t: a + 2.85, at: '#m3-in', click: true }, { t: a + 5.4, at: '#m3-grip', click: true }, { t: a + 7.1, at: '#m3-grip' }, { t: a + 8.0, at: '#m3-grip', dx: 160, dy: 120 }]);
+  sfx(a + 4.1, 'pop');
+}
+
+// ================================================================= SCENE 4 — STEP 3 Mic + live (34–47)
+{
+  const a = 34, b = 47;
+  const T = 'Selamat pagi semuanya. Hari ini kita akan membahas normalisasi basis data sampai bentuk normal ketiga.'.split(' ');
+  const t0 = a + 3.7, wps = 2.6;
+  const speech = t => {
+    const n = clamp(Math.floor((t - t0) * wps) + 1, 0, T.length) * (t >= t0 ? 1 : 0);
+    const done = t > t0 + T.length / wps + .5;
+    const f = done ? n : Math.max(0, n - 2);
+    return { fin: T.slice(0, f).join(' '), int: T.slice(f, n).join(' ') };
+  };
+  const ov = `
+    <div id="m4-setup" class="abs" style="left:150px;top:400px;width:740px;height:163px;border-radius:26px;border:3px dashed rgba(255,255,255,.4);background:rgba(2,6,23,.82);padding:26px 30px">
+      <div style="display:flex;align-items:center;gap:12px;font-size:25px;font-weight:800;color:rgba(255,255,255,.9)">${ico('grip', 30, 'rgba(255,255,255,.55)')}MODE PENGATURAN POSISI</div>
+      <div style="font-size:19px;color:rgba(255,255,255,.6);margin-top:6px">Tahan dan geser area ini ke posisi yang Anda inginkan.</div></div>
+    <div id="m4-livebadge" class="abs pill" style="left:36px;top:30px;font-size:20px;padding:8px 18px;background:#dc2626;color:#fff;opacity:0">● LIVE</div>
+    <div class="live" style="height:150px"><div class="subt" style="font-size:44px"><span id="m4-fin"></span> <span id="m4-int" style="opacity:.75"></span></div></div>`;
+  const el = scene(a, b, txt(3, 'Aktifkan Subtitle &amp; Mulai Bicara',
+    'Klik <b>“Tampilkan Layar Subtitle”</b>, lalu <b>“Mulai Mikrofon”</b>. Setiap ucapan langsung tampil sebagai subtitle di layar presentasi.',
+    'Saat aktif, jendela subtitle tembus-klik — Anda tetap bisa mengontrol slide di bawahnya.') + `
+    <div class="card" id="d4" style="left:740px;top:150px;width:520px;height:580px;padding:26px">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:16px;border-bottom:1px solid rgba(255,255,255,.1)">
+        <div style="font-size:24px;font-weight:800">SuaraKami <span class="pill" style="background:rgba(0,0,0,.4);color:#93c5fd">Pro</span></div>
+        <div class="dark" style="border-radius:12px;padding:6px 12px;font-size:22px;font-weight:900;letter-spacing:4px;color:#60a5fa">4827</div></div>
+      <div class="dark" style="margin-top:18px;height:310px;border-radius:18px;padding:20px;display:flex;align-items:flex-end;position:relative;overflow:hidden">
+        <div id="d4-empty" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#64748b;font-size:16px"><span style="opacity:.35">${ico('micoff', 44)}</span>Mulai presentasi dengan menekan tombol mikrofon.</div>
+        <div style="font-size:23px;line-height:1.5;color:#e2e8f0;font-weight:500"><span id="d4-fin"></span> <span id="d4-int" style="opacity:.55"></span></div></div>
+      <div style="display:flex;justify-content:center;align-items:center;gap:18px;margin-top:22px">
+        <div id="d4-mic" class="btn" style="width:300px;height:76px;font-size:22px;background:#2563eb;box-shadow:0 0 30px rgba(37,99,235,.45)"></div>
+        <div id="d4-wave" style="display:flex;align-items:center;gap:5px;color:#f87171;height:50px;opacity:0">${waveBars(6, 'w4')}</div></div>
+    </div>
+    <div class="card" id="d4b" style="left:740px;top:750px;width:520px;height:170px;padding:24px 26px">
+      <h3>${ico('layers', 22, '#60a5fa')} Tampilan Subtitle</h3>
+      <div id="d4-disp" class="btn" style="margin-top:18px;height:66px;font-size:20px"></div></div>
+    ${monitor('m4', 1300, 300, 530, ov)}
+  `, (t, lt) => {
+    animTxt(el, lt);
+    pop($('#d4'), lt, .2, .6, { dy: 50 }); pop($('#d4b'), lt, .35, .6, { dy: 50 }); pop($('#m4'), lt, .5, .6, { dy: 50 });
+    const disp = lt > 1.4, mic = lt > 3.2;
+    const db = $('#d4-disp');
+    db.innerHTML = ico('type', 22) + (disp ? ' Layar Subtitle Sedang Aktif' : ' Tampilkan Layar Subtitle');
+    db.style.background = disp ? '#16a34a' : '#334155';
+    db.style.boxShadow = disp ? '0 0 26px rgba(22,163,74,.45)' : 'none';
+    const mb = $('#d4-mic');
+    mb.innerHTML = mic ? ico('micoff', 28) + ' Hentikan Mikrofon' : ico('mic', 28) + ' Mulai Mikrofon';
+    mb.style.background = mic ? '#ef4444' : '#2563eb';
+    mb.style.boxShadow = mic ? '0 0 34px rgba(239,68,68,.5)' : '0 0 30px rgba(37,99,235,.45)';
+    $('#d4-wave').style.opacity = mic ? 1 : 0; animWave('.w4', t, mic ? 1 : 0);
+    $('#m4-setup').style.opacity = 1 - p(lt, 1.45, 1.8);
+    $('#m4-livebadge').style.opacity = eo(p(lt, 1.6, 1.9)) * (.75 + .25 * Math.sin(lt * 5));
+    const s = speech(t);
+    $('#d4-fin').textContent = s.fin; $('#d4-int').textContent = s.int;
+    $('#m4-fin').textContent = s.fin; $('#m4-int').textContent = s.int;
+    $('#d4-empty').style.opacity = 1 - p(lt, 3.6, 3.9);
+  }, 3);
+  cursorTrack([{ t: a + .9, at: [1100, 980] }, { t: a + 1.4, at: '#d4-disp', click: true }, { t: a + 3.2, at: '#d4-mic', click: true }, { t: a + 4.4, at: '#d4-mic', dx: 70, dy: 90 }]);
+}
+
+// ================================================================= SCENE 5 — STEP 4 Visual settings (47–57)
+{
+  const a = 47, b = 57;
+  const typeKW = typer(a + 6.2, 'ujian', 8);
+  const fsv = t => Math.round(lerp(28, 56, eio(p(t, a + 2.5, a + 3.8))));
+  const track = (id, label, val, pct) => `<div style="margin-top:22px"><div style="display:flex;justify-content:space-between;font-size:16px;color:#94a3b8"><span>${label}</span><span id="${id}-v">${val}</span></div>
+      <div style="position:relative;height:8px;border-radius:4px;background:rgba(255,255,255,.12);margin-top:12px"><div id="${id}-f" style="position:absolute;left:0;top:0;bottom:0;width:${pct}%;border-radius:4px;background:#60a5fa"></div>
+      <div id="${id}-th" style="position:absolute;top:-8px;left:calc(${pct}% - 12px);width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)"></div></div></div>`;
+  const sw = ['#ffffff', '#67e8f9', '#86efac', '#fda4af', '#c4b5fd'];
+  const ov = `<div class="live" style="height:300px"><div id="m5-box" class="subt" style="font-size:40px;border-radius:26px;padding:18px 26px">Minggu depan ada <span id="m5-kw">ujian</span> tengah semester, jangan lupa belajar ya.</div></div>`;
+  const el = scene(a, b, txt(4, 'Atur Tampilan Subtitle',
+    'Sesuaikan <b>ukuran</b>, <b>warna</b>, <b>tinggi</b>, dan <b>latar kaca</b> subtitle dari dashboard — perubahan langsung terlihat di layar.',
+    'Isi <b>Auto-Highlight Kata Kunci</b> (mis. “ujian”) agar kata itu otomatis disorot kuning.') + `
+    <div class="card" id="c5" style="left:740px;top:200px;width:480px;height:680px;padding:28px">
+      <h3>${ico('layers', 22, '#60a5fa')} Tampilan Subtitle</h3>
+      <div class="hr" style="margin:18px 0 20px"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:18px;color:#cbd5e1;font-weight:500">Gunakan Background Kaca
+        <div id="c5-tog" style="position:relative;width:56px;height:30px;border-radius:15px;background:#334155"><div id="c5-knob" style="position:absolute;top:4px;left:4px;width:22px;height:22px;border-radius:50%;background:#fff"></div></div></div>
+      ${track('c5-op', 'Opasitas Background', '70%', 67)}
+      ${track('c5-fs', 'Ukuran Teks', '28px', 19)}
+      ${track('c5-mh', 'Batas Tinggi', '300px', 29)}
+      <div style="font-size:16px;color:#94a3b8;margin-top:24px">Warna Teks</div>
+      <div style="display:flex;gap:14px;margin-top:12px">${sw.map((c, i) => `<div id="c5-sw${i}" style="width:48px;height:48px;border-radius:14px;background:${c};border:3px solid transparent"></div>`).join('')}</div>
+      <div class="hr" style="margin:26px 0 20px"></div>
+      <div style="font-size:18px;font-weight:600;color:#cbd5e1;display:flex;align-items:center;gap:10px">${ico('zap', 20, '#facc15')} Auto-Highlight Kata Kunci</div>
+      <div id="c5-kw" class="input" style="height:58px;margin-top:14px;padding:0 18px;font-size:19px"></div>
+      <div style="font-size:14px;color:#64748b;margin-top:10px">Kata-kata ini akan bercetak tebal kuning otomatis.</div>
+    </div>
+    ${monitor('m5', 1270, 290, 560, ov)}
+  `, (t, lt) => {
+    animTxt(el, lt);
+    pop($('#c5'), lt, .2, .6, { dy: 50 }); pop($('#m5'), lt, .4, .6, { dy: 50 });
+    const bg = eo(p(lt, 1.1, 1.4));
+    $('#c5-tog').style.background = bg > .5 ? '#3b82f6' : '#334155';
+    $('#c5-knob').style.left = lerp(4, 30, bg) + 'px';
+    const v = fsv(t), pct = (v - 12) / (96 - 12) * 100;
+    $('#c5-fs-v').textContent = v + 'px'; $('#c5-fs-f').style.width = pct + '%'; $('#c5-fs-th').style.left = `calc(${pct}% - 12px)`;
+    const box = $('#m5-box');
+    box.style.fontSize = v + 'px';
+    box.style.background = `rgba(0,0,0,${.7 * bg})`;
+    const col = lt > 4.7 ? '#67e8f9' : '#ffffff';
+    box.style.color = col;
+    for (let i = 0; i < 5; i++) $('#c5-sw' + i).style.borderColor = ((i === 1 && lt > 4.7) || (i === 0 && lt <= 4.7)) ? '#3b82f6' : 'transparent';
+    const kw = typeKW(t);
+    $('#c5-kw').innerHTML = (kw || (lt < 5.9 ? '<span class="ph">Contoh: ujian, kuis, tugas penting</span>' : '')) + (lt > 5.9 && lt < 8.5 ? caret(t) : '');
+    $('#c5-kw').style.borderColor = lt > 5.9 ? '#3b82f6' : 'rgba(255,255,255,.12)';
+    const hk = p(lt, 7.0, 7.4);
+    const k = $('#m5-kw');
+    k.className = hk > 0 ? 'hl' : '';
+    k.style.display = 'inline-block';
+    k.style.transform = `scale(${hk > 0 ? lerp(1.4, 1, back(hk)) : 1})`;
+  }, 4);
+  cursorTrack([{ t: a + .8, at: [1000, 1000] }, { t: a + 1.1, at: '#c5-tog', click: true }, { t: a + 2.4, at: '#c5-fs-th', click: true }, { t: a + 3.8, at: '#c5-fs-th' },
+    { t: a + 4.7, at: '#c5-sw1', click: true }, { t: a + 5.9, at: '#c5-kw', click: true, dx: -60 }, { t: a + 8.6, at: '#c5-kw', dx: 120, dy: 80 }]);
+  sfx(a + 7.0, 'pop');
+}
+
+// ================================================================= SCENE 6 — STEP 5 Q&A (57–71)
+{
+  const a = 57, b = 71;
+  const typeName = typer(a + 1.15, 'Rina', 8);
+  const typeCode = typer(a + 2.3, '4827', 8);
+  const Q = 'Pak, apakah normalisasi harus sampai 3NF?';
+  const typeQ = typer(a + 4.35, Q, 22);
+  const kStart = a + 8.9, kDur = 3.6;
+  const inp = (id, h, fs, extra = '') => `<div id="${id}" class="input" style="height:${h}px;justify-content:center;font-size:${fs}px;margin-top:14px;${extra}"></div>`;
+  const ph = phoneHeader + `
+    <div id="p6-join" class="abs" style="left:0;right:0;top:110px">
+      <div style="font-size:14px;color:#94a3b8;text-align:center;margin-top:14px;line-height:1.4">Masukkan kode sesi dosen untuk bergabung dan mengirim pesan suara.</div>
+      ${inp('p6-name', 56, 19)}${inp('p6-code', 60, 26, 'font-weight:800;letter-spacing:8px')}
+      <div id="p6-joinbtn" class="btn" style="height:58px;margin-top:16px;background:#2563eb;font-size:17px">${ico('key', 18)} Bergabung ke Sesi</div></div>
+    <div id="p6-msg" class="abs" style="left:0;right:0;top:110px;opacity:0">
+      <div style="font-size:14px;color:#94a3b8;text-align:center;margin-top:14px;line-height:1.4">Ketik pesan Anda, pesan akan dibacakan di perangkat dosen.</div>
+      <div id="p6-ta" class="input" style="height:150px;margin-top:14px;align-items:flex-start;padding:14px 16px;font-size:17px;line-height:1.45"></div>
+      <div id="p6-send" class="btn" style="height:58px;margin-top:16px;background:#2563eb;font-size:17px">${ico('send', 18)} Kirim Pesan Suara</div></div>
+    ${toast('p6-t1', 'Berhasil bergabung ke sesi!')}${toast('p6-t2', 'Pesan berhasil dikirim!')}`;
+  const ov = `<div class="live" style="height:300px;bottom:40px"><div id="m6-k" style="opacity:0">
+      <div style="color:#60a5fa;font-weight:800;font-size:30px;letter-spacing:3px;text-transform:uppercase;text-shadow:0 2px 6px #000">[Tanya Jawab - Rina]</div>
+      <div class="subt" style="font-size:48px;margin-top:8px"><span id="m6-said" style="color:#facc15"></span><span id="m6-rest"></span></div></div></div>`;
+  const el = scene(a, b, txt(5, 'Terima Pertanyaan Mahasiswa',
+    'Mahasiswa membuka <b>Mode TTS</b> di HP, mengisi nama &amp; kode sesi, lalu mengirim pertanyaan. Klik <b>▶</b> untuk membacakannya ke kelas.',
+    'Mikrofon dosen otomatis dijeda saat pertanyaan dibacakan, lalu aktif kembali.') + `
+    ${phone('p6', 750, 150, ph)}
+    <div class="card" id="q6" style="left:1130px;top:150px;width:690px;height:290px;padding:24px 26px">
+      <h3 style="justify-content:space-between"><span style="display:flex;gap:10px;align-items:center">${ico('msg', 22, '#60a5fa')} Antrean Q&amp;A</span>
+        <span id="q6-badge" class="pill" style="background:rgba(59,130,246,.2);color:#93c5fd;font-size:15px">0 Baru</span></h3>
+      <div class="hr" style="margin:16px 0"></div>
+      <div id="q6-empty" style="text-align:center;color:#64748b;font-size:16px;margin-top:40px">Belum ada pertanyaan masuk.</div>
+      <div id="q6-item" class="abs" style="left:26px;right:26px;top:86px;padding:18px 20px;border-radius:20px;background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.4);opacity:0">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700;font-size:18px;display:flex;align-items:center;gap:8px">${ico('user', 16, '#60a5fa')} Rina</span>
+          <div id="q6-ctrl" style="display:flex;gap:8px"></div></div>
+        <div style="color:#cbd5e1;font-size:18px;margin-top:10px">${Q}</div></div>
+      <div id="q6-pause" class="abs pill" style="right:26px;bottom:18px;font-size:14px;background:rgba(234,179,8,.18);color:#fde047;border:1px solid rgba(234,179,8,.45);opacity:0">${ico('mic', 14)} Mikrofon dijeda otomatis untuk Q&amp;A</div>
+    </div>
+    <div id="plane" class="abs" style="left:0;top:0;opacity:0;color:#93c5fd">${ico('send', 40)}</div>
+    ${monitor('m6', 1130, 475, 690, ov)}
+  `, (t, lt) => {
+    animTxt(el, lt);
+    pop($('#p6'), lt, .2, .6, { dy: 60 }); pop($('#q6'), lt, .35, .6, { dy: 50 }); pop($('#m6'), lt, .5, .6, { dy: 50 });
+    const nm = typeName(t), cd = typeCode(t);
+    $('#p6-name').innerHTML = (nm || '<span class="ph">Nama Anda (Bebas)</span>') + (lt > .95 && lt < 2.1 ? caret(t) : '');
+    $('#p6-code').innerHTML = (cd || '<span class="ph" style="font-size:15px;letter-spacing:0;font-weight:500">Kode 4 Digit</span>') + (lt > 2.1 && lt < 3.2 ? caret(t) : '');
+    $('#p6-name').style.borderColor = lt > .95 && lt < 2.1 ? '#3b82f6' : 'rgba(255,255,255,.12)';
+    $('#p6-code').style.borderColor = lt > 2.1 && lt < 3.2 ? '#3b82f6' : 'rgba(255,255,255,.12)';
+    const sw = p(lt, 3.6, 4.0);
+    tf($('#p6-join'), { x: -40 * eo(sw), o: 1 - sw }); tf($('#p6-msg'), { x: 40 * (1 - eo(sw)), o: eo(sw) });
+    const q = typeQ(t);
+    const sent = lt > 6.75;
+    $('#p6-ta').innerHTML = sent ? '<span class="ph">Tulis pertanyaan atau tanggapan Anda di sini...</span>' : ((q || '<span class="ph">Tulis pertanyaan atau tanggapan Anda di sini...</span>') + (lt > 4.1 ? caret(t) : ''));
+    $('#p6-ta').style.borderColor = lt > 4.1 && !sent ? '#3b82f6' : 'rgba(255,255,255,.12)';
+    const t1 = $('#p6-t1'); tf(t1, { y: (1 - eo(p(lt, 3.3, 3.6))) * 20, o: eo(p(lt, 3.3, 3.6)) * (1 - p(lt, 5.0, 5.3)) });
+    const t2 = $('#p6-t2'); tf(t2, { y: (1 - eo(p(lt, 6.8, 7.1))) * 20, o: eo(p(lt, 6.8, 7.1)) * (1 - p(lt, 9.5, 9.8)) });
+    // paper plane flight
+    const pk = p(lt, 6.75, 7.45);
+    const r1 = $('#p6-send').getBoundingClientRect(), r2 = $('#q6-item').getBoundingClientRect();
+    const x = lerp(r1.left + r1.width / 2, r2.left + 120, eio(pk)), y = lerp(r1.top, r2.top + 20, eio(pk)) - Math.sin(Math.PI * pk) * 140;
+    tf($('#plane'), { x: x - 20, y: y - 20, r: lerp(-10, 20, pk), s: lerp(1, .7, pk), o: pk > 0 && pk < 1 ? 1 : 0 });
+    const arrived = lt > 7.45;
+    $('#q6-empty').style.opacity = arrived ? 0 : 1;
+    pop($('#q6-item'), lt, 7.45, .5, { dy: 20 });
+    const playing = t > kStart - .1 && t < kStart + kDur + .3;
+    $('#q6-badge').textContent = (arrived && lt < 8.8) ? '1 Baru' : '0 Baru';
+    $('#q6-badge').style.background = (arrived && lt < 8.8) ? 'rgba(59,130,246,.55)' : 'rgba(59,130,246,.2)';
+    const B = (i, c, id = '') => `<div ${id ? `id="${id}"` : ''} style="width:36px;height:36px;border-radius:10px;background:${c};display:flex;align-items:center;justify-content:center">${ico(i, 16)}</div>`;
+    $('#q6-ctrl').innerHTML = playing ? B('pause', '#ca8a04', 'q6-play') + B('replay', '#2563eb') + B('stop', '#dc2626') + B('check', '#334155') + B('trash', '#334155')
+      : B('play', '#2563eb', 'q6-play') + B('check', '#334155') + B('trash', '#334155');
+    $('#q6-item').style.background = lt > 8.8 ? 'rgba(255,255,255,.05)' : 'rgba(59,130,246,.12)';
+    $('#q6-pause').style.opacity = eo(p(lt, 9.0, 9.3)) * (1 - p(lt, 12.8, 13.1));
+    // karaoke
+    const kk = p(t, kStart, kStart + kDur);
+    let ci = Math.floor(kk * Q.length); while (ci < Q.length && ci > 0 && Q[ci] !== ' ') ci++;
+    $('#m6-k').style.opacity = eo(p(t, kStart - .2, kStart + .1)) * (1 - p(lt, 13.2, 13.6));
+    $('#m6-said').textContent = Q.slice(0, ci); $('#m6-rest').textContent = Q.slice(ci);
+  }, 5);
+  cursorTrack([{ t: a + .6, at: [1100, 900] }, { t: a + .95, at: '#p6-name', click: true }, { t: a + 2.1, at: '#p6-code', click: true }, { t: a + 3.15, at: '#p6-joinbtn', click: true },
+    { t: a + 4.1, at: '#p6-ta', click: true }, { t: a + 6.7, at: '#p6-send', click: true }, { t: a + 8.8, at: '#q6-play', click: true }, { t: a + 10.0, at: '#q6-play', dx: 60, dy: 80 }]);
+  sfx(a + 3.3, 'pop'); sfx(a + 7.45, 'pop'); sfx(a + 8.95, 'tts');
+}
+
+// ================================================================= SCENE 7 — STEP 6 Quiz, timer, flash (71–84)
+{
+  const a = 71, b = 84;
+  const target = { A: 4, B: 15, C: 3, D: 2 };
+  const qb = (id, label, bg, col) => `<div id="${id}" class="btn" style="height:52px;font-size:16px;background:${bg};color:${col};border-color:${col}44">${label}</div>`;
+  const ph = phoneHeader + `
+    <div id="p7-msg" class="abs" style="left:0;right:0;top:110px">
+      <div style="font-size:14px;color:#94a3b8;text-align:center;margin-top:14px;line-height:1.4">Ketik pesan Anda, pesan akan dibacakan di perangkat dosen.</div>
+      <div class="input" style="height:150px;margin-top:14px;align-items:flex-start;padding:14px 16px;font-size:16px"><span class="ph">Tulis pertanyaan atau tanggapan Anda di sini...</span></div>
+      <div class="btn" style="height:58px;margin-top:16px;background:#2563eb;font-size:17px">${ico('send', 18)} Kirim Pesan Suara</div></div>
+    <div id="p7-quiz" class="abs" style="left:0;right:0;top:110px;opacity:0">
+      <div style="margin-top:14px;text-align:center;padding:16px;border-radius:18px;background:rgba(59,130,246,.2);border:1px solid rgba(59,130,246,.35)">
+        <div style="color:#60a5fa;display:flex;justify-content:center">${ico('pie', 28)}</div>
+        <div style="font-weight:800;font-size:18px;margin-top:6px">Kuis Sedang Berlangsung</div>
+        <div style="font-size:13px;color:#bfdbfe;margin-top:4px">Pilih jawaban Anda di bawah ini!</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px">
+        ${['A', 'B', 'C', 'D'].map(c => `<div id="p7-${c}" class="btn" style="height:96px;font-size:40px;font-weight:900;background:#2563eb">${c}</div>`).join('')}</div></div>
+    ${toast('p7-t', 'Pilihan B terkirim!')}`;
+  const ov = `
+    <div id="m7-timer" class="abs" style="right:34px;top:30px;padding:16px 30px;border-radius:30px;background:rgba(2,6,23,.85);border:1px solid rgba(255,255,255,.25);display:flex;align-items:center;gap:20px;opacity:0">
+      <div style="width:20px;height:20px;border-radius:50%;background:#ef4444;box-shadow:0 0 12px #ef4444"></div>
+      <span id="m7-tt" style="font-family:'DejaVu Sans Mono',monospace;font-size:62px;font-weight:900;letter-spacing:4px">05:00</span></div>
+    <div id="m7-flash" class="abs" style="inset:0;background:rgba(0,0,0,.66);display:flex;align-items:center;justify-content:center;opacity:0">
+      <div id="m7-ft" style="font-size:78px;font-weight:900;letter-spacing:6px;text-transform:uppercase;text-shadow:0 0 50px rgba(255,255,255,.8)">Waktunya Kuis</div></div>`;
+  const el = scene(a, b, txt(6, 'Kuis, Timer &amp; Pengumuman',
+    'Mulai <b>kuis A/B/C/D</b> dan pantau hasil voting secara langsung. Tampilkan <b>timer</b>, <b>pengumuman besar</b>, dan <b>efek suara</b> ke seluruh kelas.',
+    'Mahasiswa memilih jawaban langsung dari HP mereka.') + `
+    <div class="card" id="c7a" style="left:760px;top:200px;width:580px;height:520px;padding:28px">
+      <h3 style="justify-content:space-between"><span style="display:flex;gap:10px;align-items:center">${ico('pie', 22, '#fb923c')} Live Polling</span>
+        <span id="c7-btn" class="pill" style="font-size:15px;padding:8px 14px;border-radius:12px;font-weight:700"></span></h3>
+      <div class="hr" style="margin:18px 0 22px"></div>
+      ${['A', 'B', 'C', 'D'].map(c => `<div style="position:relative;height:62px;border-radius:16px;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);overflow:hidden;margin-bottom:16px">
+        <div id="c7-bar${c}" style="position:absolute;left:0;top:0;bottom:0;width:0;background:rgba(249,115,22,.45)"></div>
+        <div style="position:absolute;inset:0;display:flex;justify-content:space-between;align-items:center;padding:0 20px;font-weight:700;font-size:19px"><span>Opsi ${c}</span><span id="c7-v${c}" style="color:#fdba74">0 Suara (0%)</span></div></div>`).join('')}
+    </div>
+    ${phone('p7', 1450, 150, ph)}
+    <div class="card" id="c7b" style="left:740px;top:230px;width:480px;height:560px;padding:28px;opacity:0">
+      <h3>${ico('zap', 22, '#facc15')} Fitur Pengajaran</h3><div class="hr" style="margin:18px 0"></div>
+      <div style="font-size:17px;color:#cbd5e1;display:flex;gap:8px;align-items:center">${ico('clock', 18)} Quick Timer Layar</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px">
+        ${qb('c7-t1', '1 Min', 'rgba(59,130,246,.2)', '#93c5fd')}${qb('c7-t5', '5 Min', 'rgba(59,130,246,.2)', '#93c5fd')}${qb('c7-t10', '10 Min', 'rgba(59,130,246,.2)', '#93c5fd')}${qb('c7-ts', 'Stop', 'rgba(239,68,68,.2)', '#fca5a5')}</div>
+      <div style="font-size:17px;color:#cbd5e1;display:flex;gap:8px;align-items:center;margin-top:26px">${ico('alert', 18)} Attention Flash</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+        ${qb('c7-f1', 'Tanya Jawab', 'rgba(168,85,247,.2)', '#d8b4fe')}${qb('c7-f2', 'Kuis', 'rgba(249,115,22,.2)', '#fdba74')}${qb('c7-f3', 'Istirahat', 'rgba(34,197,94,.2)', '#86efac')}${qb('c7-f4', 'Perhatikan!', 'rgba(239,68,68,.2)', '#fca5a5')}</div>
+      <div style="font-size:17px;color:#cbd5e1;display:flex;gap:8px;align-items:center;margin-top:26px">${ico('vol', 18)} Soundboard Interaktif</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px">
+        <div id="c7-s1" class="btn dark" style="height:86px;flex-direction:column;gap:6px;font-size:13px;color:#cbd5e1">${ico('checkc', 24, '#4ade80')}Benar (Ding)</div>
+        <div class="btn dark" style="height:86px;flex-direction:column;gap:6px;font-size:13px;color:#cbd5e1">${ico('alert', 24, '#f87171')}Salah (Buzzer)</div>
+        <div class="btn dark" style="height:86px;flex-direction:column;gap:6px;font-size:13px;color:#cbd5e1">${ico('bell', 24, '#60a5fa')}Info (Chime)</div></div>
+    </div>
+    ${monitor('m7', 1260, 290, 570, ov)}
+  `, (t, lt) => {
+    animTxt(el, lt);
+    const sw = p(lt, 6.2, 6.8);
+    pop($('#c7a'), lt, .2, .6, { dy: 50 }); pop($('#p7'), lt, .35, .6, { dy: 60 });
+    if (sw > 0) { tf($('#c7a'), { x: -40 * eo(sw), o: 1 - sw }); tf($('#p7'), { x: 40 * eo(sw), o: 1 - sw }); }
+    tf($('#c7b'), { x: 40 * (1 - eo(p(lt, 6.4, 7.0))), o: eo(p(lt, 6.4, 7.0)) });
+    tf($('#m7'), { y: 50 * (1 - eo(p(lt, 6.5, 7.1))), o: eo(p(lt, 6.5, 7.1)) });
+    const active = lt > 1.0;
+    const bt = $('#c7-btn');
+    bt.textContent = active ? 'Hentikan Kuis' : 'Mulai Kuis A/B/C/D';
+    bt.style.background = active ? 'rgba(239,68,68,.25)' : 'rgba(34,197,94,.25)';
+    bt.style.color = active ? '#fca5a5' : '#86efac';
+    const qk = p(lt, 1.3, 1.6) * (1 - p(lt, 2.75, 3.0));
+    tf($('#p7-quiz'), { s: lerp(.92, 1, eo(qk)), o: qk }); $('#p7-msg').style.opacity = 1 - qk;
+    $('#p7-B').style.background = lt > 2.55 ? '#22c55e' : '#2563eb';
+    tf($('#p7-t'), { y: (1 - eo(p(lt, 2.7, 3.0))) * 20, o: eo(p(lt, 2.7, 3.0)) * (1 - p(lt, 4.6, 4.9)) });
+    const vk = eo(p(lt, 2.8, 5.4));
+    const v = {}; let tot = 0;
+    for (const c in target) { v[c] = Math.round(target[c] * vk); tot += v[c]; }
+    for (const c in target) {
+      const pc = tot ? Math.round(v[c] / tot * 100) : 0;
+      $('#c7-bar' + c).style.width = pc + '%';
+      $('#c7-v' + c).textContent = `${v[c]} Suara (${pc}%)`;
+    }
+    // timer & flash
+    const tk = p(lt, 7.3, 7.7);
+    tf($('#m7-timer'), { s: lerp(.6, 1, back(tk)), o: eo(tk) });
+    const rem = 300 - Math.max(0, Math.floor(lt - 7.3));
+    $('#m7-tt').textContent = String(Math.floor(rem / 60)).padStart(2, '0') + ':' + String(rem % 60).padStart(2, '0');
+    const fk = p(lt, 9.4, 9.8) * (1 - p(lt, 11.9, 12.3));
+    $('#m7-flash').style.opacity = fk;
+    tf($('#m7-ft'), { s: lerp(1.3, 1, eo(p(lt, 9.4, 9.9))) * (1 + .03 * Math.sin(lt * 8)), o: .75 + .25 * Math.sin(lt * 6) });
+  }, 6);
+  cursorTrack([{ t: a + .7, at: [1200, 900] }, { t: a + 1.0, at: '#c7-btn', click: true }, { t: a + 2.55, at: '#p7-B', click: true }, { t: a + 3.8, at: '#p7-B', dx: 80, dy: 140 },
+    { t: a + 7.3, at: '#c7-t5', click: true }, { t: a + 9.4, at: '#c7-f2', click: true }, { t: a + 11.9, at: '#c7-s1', click: true }, { t: a + 12.5, at: '#c7-s1', dx: 60, dy: 60 }]);
+  sfx(a + 2.7, 'pop'); sfx(a + 9.45, 'chime'); sfx(a + 11.95, 'ding');
+}
+
+// ================================================================= SCENE 8 — STEP 7 PDF (84–92)
+{
+  const a = 84, b = 92;
+  const line = (w, o = .18) => `<div style="height:9px;border-radius:5px;background:rgba(15,23,42,${o});width:${w}%;margin-top:9px"></div>`;
+  const el = scene(a, b, txt(7, 'Unduh Notulensi PDF',
+    'Setelah kelas selesai, klik <b>ikon unduh</b>. Transkrip, daftar pertanyaan, dan hasil kuis tersimpan dalam <b>satu file PDF</b>.',
+    'Klik ikon tempat sampah untuk mengosongkan transkrip sebelum memulai sesi baru.') + `
+    <div class="card" id="h8" style="left:760px;top:150px;width:1060px;height:130px;padding:0 32px;display:flex;align-items:center;justify-content:space-between">
+      <div><div style="font-size:30px;font-weight:800">SuaraKami <span class="pill" style="background:rgba(0,0,0,.4);color:#93c5fd">Pro</span></div>
+        <div style="color:#94a3b8;font-size:15px;margin-top:4px">Dashboard Pengajar - Kendalikan Presentasi Anda.</div></div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="dark" style="border-radius:14px;padding:8px 16px;display:flex;gap:12px;align-items:center"><span style="font-size:12px;font-weight:800;letter-spacing:2px;color:#94a3b8">KODE SESI</span><span style="font-size:28px;font-weight:900;letter-spacing:5px;color:#60a5fa">4827</span></div>
+        <div class="dark btn" style="width:56px;height:56px;border-radius:14px;color:#93c5fd">${ico('msg', 22)}</div>
+        <div id="h8-dl" class="dark btn" style="width:56px;height:56px;border-radius:14px">${ico('download', 24)}</div>
+        <div class="dark btn" style="width:56px;height:56px;border-radius:14px;color:#fca5a5">${ico('trash', 22)}</div></div></div>
+    <div id="pdf" class="abs" style="left:1040px;top:315px;width:500px;height:560px;border-radius:10px;background:#fff;color:#0f172a;padding:36px 38px;box-shadow:0 40px 100px rgba(0,0,0,.6);opacity:0">
+      <div style="position:absolute;right:20px;top:18px;background:#dc2626;color:#fff;font-size:12px;font-weight:800;padding:4px 10px;border-radius:6px">PDF</div>
+      <div style="font-size:24px;font-weight:800">Notulensi Kelas - SuaraKami</div>
+      <div style="font-size:12px;color:#475569;margin-top:6px">Tanggal: 6/11/2026, 09.30.00</div>
+      <div style="font-size:16px;font-weight:800;margin-top:22px">1. Transkrip Dosen</div>
+      <div style="font-size:12px;color:#334155;margin-top:8px;line-height:1.5">Selamat pagi semuanya. Hari ini kita akan membahas normalisasi basis data sampai bentuk normal ketiga.</div>
+      ${line(92)}${line(85)}${line(60)}
+      <div style="font-size:16px;font-weight:800;margin-top:22px">2. Sesi Tanya Jawab (Mahasiswa)</div>
+      <div style="font-size:12px;font-weight:700;margin-top:8px">Q1 - Rina:</div>
+      <div style="font-size:12px;color:#334155;margin-top:4px;padding-left:12px">Pak, apakah normalisasi harus sampai 3NF?</div>
+      <div style="font-size:16px;font-weight:800;margin-top:22px">3. Hasil Polling Kuis</div>
+      <div style="font-size:12px;color:#334155;margin-top:8px;line-height:1.75">Opsi A: 4 Suara (17%)<br>Opsi B: 15 Suara (63%)<br>Opsi C: 3 Suara (13%)<br>Opsi D: 2 Suara (8%)</div>
+    </div>
+    <div id="f8" class="abs pill" style="left:1150px;top:905px;font-size:19px;padding:10px 20px;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.5);color:#bbf7d0;opacity:0">${ico('file', 20)} SuaraKami-Notulensi.pdf ${ico('check', 20, '#4ade80')}</div>
+  `, (t, lt) => {
+    animTxt(el, lt);
+    pop($('#h8'), lt, .2, .6, { dy: 40 });
+    const k = p(lt, 1.6, 2.5);
+    tf($('#pdf'), { y: lerp(-260, 0, eo(k)), s: lerp(.2, 1, eo(k)), r: lerp(-12, -2, eo(k)) + Math.sin(lt * 1.5) * .6 * k, o: eo(p(lt, 1.6, 1.9)) });
+    pop($('#f8'), lt, 3.0, .5, { dy: 20 });
+  }, 7);
+  cursorTrack([{ t: a + .8, at: [1300, 700] }, { t: a + 1.4, at: '#h8-dl', click: true }, { t: a + 2.4, at: '#h8-dl', dx: 120, dy: 140 }]);
+  sfx(a + 3.0, 'pop');
+}
+
+// ================================================================= SCENE 9 — OUTRO (92–99.5)
+{
+  const a = 92, b = DUR;
+  const steps = ['Buka Dashboard', 'Jalankan Aplikasi', 'Mulai Bicara', 'Atur Tampilan', 'Tanya Jawab', 'Kuis &amp; Timer', 'Unduh PDF'];
+  const el = scene(a, b, `
+    <img id="e-logo" src="${LOGO}" style="position:absolute;left:885px;top:200px;width:150px;height:150px;border-radius:36px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+    <div id="e-title" class="abs" style="left:0;right:0;top:390px;text-align:center;font-size:104px;font-weight:900;letter-spacing:-3px;background:linear-gradient(90deg,#fff 20%,#c7d2fe 55%,#f9a8d4);-webkit-background-clip:text;background-clip:text;color:transparent">Selamat Mengajar!</div>
+    <div id="e-sub" class="abs" style="left:0;right:0;top:530px;text-align:center;font-size:32px;color:#94a3b8">SuaraKami — suara dosen, subtitle untuk semua.</div>
+    <div class="abs" style="left:110px;right:110px;top:680px;display:flex;gap:16px;justify-content:center">
+      ${steps.map((s, i) => `<div id="e-s${i}" class="card" style="position:relative;flex:1;padding:22px 16px;text-align:center;border-radius:22px">
+        <div style="width:46px;height:46px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#a855f7);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:21px">${i + 1}</div>
+        <div style="font-size:19px;font-weight:700;margin-top:14px;color:#e2e8f0">${s}</div></div>`).join('')}</div>
+  `, (t, lt) => {
+    pop($('#e-logo'), lt, .2, .7, { dy: 40, s0: .5 });
+    pop($('#e-title'), lt, .5, .7, { dy: 40, s0: .96 });
+    pop($('#e-sub'), lt, .8, .6, { dy: 20, s0: 1 });
+    for (let i = 0; i < 7; i++) pop($('#e-s' + i), lt, 1.2 + i * .12, .5, { dy: 40, s0: .8 });
+  });
+  for (let i = 0; i < 7; i++) sfx(a + 1.2 + i * .12, 'key');
+}
+
+// ---------------------------------------------------------------- progress bar
+const prog = $('#prog');
+for (let i = 0; i < 7; i++) prog.innerHTML += '<div><i></i></div>';
+
+// ---------------------------------------------------------------- master render
+function render(t) {
+  // background drift
+  tf($('#bg1'), { x: -250 + Math.sin(t * .23) * 120, y: -300 + Math.cos(t * .19) * 80 });
+  tf($('#bg2'), { x: 1250 + Math.cos(t * .21) * 120, y: 500 + Math.sin(t * .17) * 90 });
+  tf($('#bg3'), { x: 800 + Math.sin(t * .15) * 300, y: 300 + Math.cos(t * .13) * 200 });
+  for (const s of scenes) {
+    if (t < s.a || t > s.b) { s.el.style.display = 'none'; continue; }
+    s.el.style.display = 'block';
+    const isLast = s.b >= DUR;
+    s.el.style.opacity = Math.min(s.a === 0 ? 1 : eo(p(t, s.a, s.a + .5)), isLast ? 1 : 1 - p(t, s.b - .45, s.b));
+    s.update(t, t - s.a);
+  }
+  // progress bar (steps 1..7)
+  const stepScenes = scenes.filter(s => s.step);
+  prog.style.opacity = eo(p(t, 14, 14.6)) * (1 - p(t, 91.4, 92));
+  stepScenes.forEach((s, i) => { prog.children[i].firstChild.style.width = (p(t, s.a, s.b) * 100) + '%'; });
+  renderCursor(t);
+  $('#fade').style.opacity = p(t, DUR - .9, DUR);
+}
+window.render = render; window.SFX = SFX; window.DUR = DUR; window.FPS = FPS;
+const q = new URLSearchParams(location.search);
+render(q.has('t') ? parseFloat(q.get('t')) : 0);
+</script>
+</body>
+</html>
